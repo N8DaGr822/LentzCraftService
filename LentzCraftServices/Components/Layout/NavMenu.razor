@@ -1,0 +1,55 @@
+﻿@inject NavigationManager Navigation
+@inject SignInManager<IdentityUser> SignInManager
+
+<div class="navbar">
+    <div class="container">
+        <div class="navbar-brand">
+            <a href="/" class="brand-link">Lentz Crafts & Services</a>
+        </div>
+        
+        <button class="navbar-toggler @(isMenuOpen ? "active" : "")" @onclick="ToggleMenu" type="button" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        
+        <nav class="nav-links @(isMenuOpen ? "active" : "")">
+            <NavLink href="/" Match="NavLinkMatch.All" class="nav-link" @onclick="CloseMenu">Home</NavLink>
+            <NavLink href="/about" class="nav-link" @onclick="CloseMenu">About</NavLink>
+            <NavLink href="/products" class="nav-link" @onclick="CloseMenu">Services</NavLink>
+            <NavLink href="/products" class="nav-link" @onclick="CloseMenu">Gallery</NavLink>
+            <NavLink href="/contact" class="nav-link nav-link-contact" @onclick="CloseMenu">Contact</NavLink>
+            
+            @if (User != null && SignInManager.IsSignedIn(User))
+            {
+                <NavLink href="/admin" class="nav-link" @onclick="CloseMenu">Admin</NavLink>
+                <form method="post" action="/Account/Logout" style="display: inline;">
+                    <button type="submit" class="nav-link-button">Logout</button>
+                </form>
+            }
+            else
+            {
+                <NavLink href="/Account/Login" class="nav-link" @onclick="CloseMenu">Login</NavLink>
+            }
+        </nav>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+    
+    private System.Security.Claims.ClaimsPrincipal? User => HttpContext?.User;
+    
+    private bool isMenuOpen = false;
+    
+    private void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+    }
+    
+    private void CloseMenu()
+    {
+        isMenuOpen = false;
+    }
+}

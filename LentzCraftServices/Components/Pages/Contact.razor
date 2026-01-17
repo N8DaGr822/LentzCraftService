@@ -1,0 +1,126 @@
+@page "/contact"
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Contact - Lentz Crafts & Services</PageTitle>
+
+<div class="contact-page">
+    <div class="container">
+        <h1 class="page-title">Contact Us</h1>
+        
+        <div class="contact-content">
+            <div class="contact-form-section">
+                <h2>Send Us a Message</h2>
+                <p>Have a question about our products or interested in a custom order? Fill out the form below and we'll get back to you soon.</p>
+                
+                <EditForm Model="@contactModel" OnValidSubmit="@HandleSubmit" class="contact-form">
+                    <DataAnnotationsValidator />
+                    
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <InputText id="name" @bind-Value="contactModel.Name" class="form-control" />
+                        <ValidationMessage For="@(() => contactModel.Name)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <InputText id="email" @bind-Value="contactModel.Email" class="form-control" type="email" />
+                        <ValidationMessage For="@(() => contactModel.Email)" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <InputText id="subject" @bind-Value="contactModel.Subject" class="form-control" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Message *</label>
+                        <InputTextArea id="message" @bind-Value="contactModel.Message" class="form-control" rows="5" />
+                        <ValidationMessage For="@(() => contactModel.Message)" />
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(submitMessage))
+                    {
+                        <div class="alert @(submitSuccess ? "alert-success" : "alert-error")">
+                            @submitMessage
+                        </div>
+                    }
+                    
+                    <button type="submit" class="btn-primary" disabled="@isSubmitting">
+                        @if (isSubmitting)
+                        {
+                            <span>Sending...</span>
+                        }
+                        else
+                        {
+                            <span>Send Message</span>
+                        }
+                    </button>
+                </EditForm>
+            </div>
+            
+            <div class="contact-info-section">
+                <h2>Get in Touch</h2>
+                <p>We'd love to hear from you! Whether you're interested in a specific item from our portfolio or have a custom project in mind, we're here to help.</p>
+                
+                <div class="contact-info">
+                    <p><strong>Email:</strong> info@lentzcrafts.com</p>
+                    <p><strong>Response Time:</strong> We typically respond within 24-48 hours.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ContactModel contactModel = new();
+    private string submitMessage = "";
+    private bool submitSuccess = false;
+    private bool isSubmitting = false;
+
+    protected override void OnInitialized()
+    {
+        // Check if there's a product ID in the query string
+        var uri = new Uri(Navigation.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        if (query.TryGetValue("product", out var productId))
+        {
+            contactModel.Subject = $"Inquiry about Product #{productId}";
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSubmitting = true;
+        submitMessage = "";
+        
+        // In a real application, this would send an email or save to database
+        // For now, we'll just simulate a successful submission
+        await Task.Delay(1000);
+        
+        submitSuccess = true;
+        submitMessage = "Thank you for your message! We'll get back to you soon.";
+        contactModel = new ContactModel();
+        
+        isSubmitting = false;
+    }
+
+    public class ContactModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Name is required")]
+        [System.ComponentModel.DataAnnotations.StringLength(100)]
+        public string Name { get; set; } = "";
+        
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Email is required")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; } = "";
+        
+        [System.ComponentModel.DataAnnotations.StringLength(200)]
+        public string Subject { get; set; } = "";
+        
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Message is required")]
+        [System.ComponentModel.DataAnnotations.StringLength(1000)]
+        public string Message { get; set; } = "";
+    }
+}
+

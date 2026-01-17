@@ -1,0 +1,125 @@
+@page "/admin/products"
+@attribute [Authorize]
+@inject IProductRepository ProductRepository
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Manage Products - Admin</PageTitle>
+
+<div class="admin-page">
+    <div class="container">
+        <div class="admin-header">
+            <h1 class="page-title">Manage Products</h1>
+            <a href="/admin/products/new" class="btn-primary">Add New Product</a>
+        </div>
+        
+        <div class="admin-filters">
+            <input type="text" @bind="searchTerm" @bind:event="oninput" placeholder="Search products..." class="search-input" />
+            <select @bind="filterCategory" @bind:event="onchange" class="filter-select">
+                <option value="">All Categories</option>
+                <option value="Woodworking">Woodworking</option>
+                <option value="Engraving">Engraving</option>
+                <option value="Crochet">Crochet</option>
+            </select>
+            <select @bind="filterStatus" @bind:event="onchange" class="filter-select">
+                <option value="">All Status</option>
+                <option value="Available">Available</option>
+                <option value="Sold">Sold</option>
+                <option value="DisplayOnly">Display Only</option>
+            </select>
+        </div>
+        
+        @if (products != null && products.Any())
+        {
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Public</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var product in products)
+                    {
+                        <tr>
+                            <td>@product.Name</td>
+                            <td>@product.Category</td>
+                            <td>@product.Status</td>
+                            <td>@(product.Price?.ToString("C") ?? "N/A")</td>
+                            <td>@product.Quantity</td>
+                            <td>@(product.IsPublic ? "Yes" : "No")</td>
+                            <td>
+                                <a href="/admin/products/@product.Id" class="btn-small">Edit</a>
+                                <button @onclick="() => DeleteProduct(product.Id)" class="btn-small btn-danger">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>No products found.</p>
+        }
+    </div>
+</div>
+
+@code {
+    private IEnumerable<Product>? products;
+    private string searchTerm = "";
+    private string filterCategory = "";
+    private string filterStatus = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        IEnumerable<Product> allProducts;
+        
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            allProducts = await ProductRepository.SearchAsync(searchTerm);
+        }
+        else
+        {
+            allProducts = await ProductRepository.GetAllAsync();
+        }
+        
+        if (!string.IsNullOrEmpty(filterCategory) && Enum.TryParse<ProductCategory>(filterCategory, out var category))
+        {
+            allProducts = allProducts.Where(p => p.Category == category);
+        }
+        
+        if (!string.IsNullOrEmpty(filterStatus) && Enum.TryParse<ProductStatus>(filterStatus, out var status))
+        {
+            allProducts = allProducts.Where(p => p.Status == status);
+        }
+        
+        products = allProducts.OrderByDescending(p => p.CreatedDate).ToList();
+    }
+
+    private async Task OnSearchChanged(ChangeEventArgs e)
+    {
+        await LoadProducts();
+    }
+    
+    private async Task OnFilterChanged(ChangeEventArgs e)
+    {
+        await LoadProducts();
+    }
+
+    private async Task DeleteProduct(int id)
+    {
+        await ProductRepository.DeleteAsync(id);
+        await LoadProducts();
+    }
+}
+

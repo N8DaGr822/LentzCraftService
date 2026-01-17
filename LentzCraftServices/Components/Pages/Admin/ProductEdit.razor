@@ -1,0 +1,166 @@
+@page "/admin/products/{ProductId:int}"
+@page "/admin/products/new"
+@attribute [Authorize]
+@inject IProductRepository ProductRepository
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>@(IsNew ? "Add Product" : "Edit Product") - Admin</PageTitle>
+
+<div class="admin-page">
+    <div class="container">
+        <h1 class="page-title">@(IsNew ? "Add New Product" : "Edit Product")</h1>
+        
+        <EditForm Model="@productModel" OnValidSubmit="@HandleSubmit" class="product-form">
+            <DataAnnotationsValidator />
+            
+            <div class="form-group">
+                <label for="name">Name *</label>
+                <InputText id="name" @bind-Value="productModel.Name" class="form-control" />
+                <ValidationMessage For="@(() => productModel.Name)" />
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description</label>
+                <InputTextArea id="description" @bind-Value="productModel.Description" class="form-control" rows="5" />
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="category">Category *</label>
+                    <InputSelect id="category" @bind-Value="productModel.Category" class="form-control">
+                        <option value="@ProductCategory.Woodworking">Woodworking</option>
+                        <option value="@ProductCategory.Engraving">Engraving</option>
+                        <option value="@ProductCategory.Crochet">Crochet</option>
+                    </InputSelect>
+                </div>
+                
+                <div class="form-group">
+                    <label for="status">Status *</label>
+                    <InputSelect id="status" @bind-Value="productModel.Status" class="form-control">
+                        <option value="@ProductStatus.Available">Available</option>
+                        <option value="@ProductStatus.Sold">Sold</option>
+                        <option value="@ProductStatus.DisplayOnly">Display Only</option>
+                    </InputSelect>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quantity">Quantity *</label>
+                    <InputNumber id="quantity" @bind-Value="productModel.Quantity" class="form-control" />
+                    <ValidationMessage For="@(() => productModel.Quantity)" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <InputNumber id="price" @bind-Value="productModel.Price" class="form-control" />
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <InputCheckbox @bind-Value="productModel.IsPublic" />
+                    Make this product publicly visible
+                </label>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">@(IsNew ? "Create Product" : "Update Product")</button>
+                <a href="/admin/products" class="btn-secondary">Cancel</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int ProductId { get; set; }
+    
+    private ProductModel productModel = new();
+    private bool IsNew => ProductId == 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!IsNew)
+        {
+            // Use AsNoTracking to avoid tracking conflicts when updating
+            var product = await ProductRepository.GetByIdAsync(ProductId, includeImages: false, asNoTracking: true);
+            if (product != null)
+            {
+                productModel = new ProductModel
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Description = product.Description,
+                    Category = product.Category,
+                    Status = product.Status,
+                    Quantity = product.Quantity,
+                    Price = product.Price,
+                    IsPublic = product.IsPublic
+                };
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (IsNew)
+        {
+            var product = new Product
+            {
+                Id = productModel.Id,
+                Name = productModel.Name,
+                Description = productModel.Description,
+                Category = productModel.Category,
+                Status = productModel.Status,
+                Quantity = productModel.Quantity,
+                Price = productModel.Price,
+                IsPublic = productModel.IsPublic,
+                CreatedDate = DateTime.UtcNow
+            };
+            await ProductRepository.AddAsync(product);
+        }
+        else
+        {
+            // For updates, UpdateAsync will load the existing entity and preserve CreatedDate
+            var product = new Product
+            {
+                Id = productModel.Id,
+                Name = productModel.Name,
+                Description = productModel.Description,
+                Category = productModel.Category,
+                Status = productModel.Status,
+                Quantity = productModel.Quantity,
+                Price = productModel.Price,
+                IsPublic = productModel.IsPublic
+            };
+            await ProductRepository.UpdateAsync(product);
+        }
+        
+        Navigation.NavigateTo("/admin/products");
+    }
+
+    public class ProductModel
+    {
+        public int Id { get; set; }
+        
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Name is required")]
+        [System.ComponentModel.DataAnnotations.StringLength(200)]
+        public string Name { get; set; } = "";
+        
+        [System.ComponentModel.DataAnnotations.StringLength(2000)]
+        public string Description { get; set; } = "";
+        
+        public ProductCategory Category { get; set; } = ProductCategory.Woodworking;
+        
+        public ProductStatus Status { get; set; } = ProductStatus.Available;
+        
+        [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue, ErrorMessage = "Quantity must be 0 or greater")]
+        public int Quantity { get; set; } = 0;
+        
+        public decimal? Price { get; set; }
+        
+        public bool IsPublic { get; set; } = true;
+    }
+}
+

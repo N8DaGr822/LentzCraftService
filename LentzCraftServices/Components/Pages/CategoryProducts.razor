@@ -1,0 +1,78 @@
+@page "/products/{CategoryName}"
+@inject IProductRepository ProductRepository
+@rendermode InteractiveServer
+
+<PageTitle>@CategoryDisplayName - Lentz Crafts & Services</PageTitle>
+
+<div class="category-products-page">
+    <div class="container">
+        <h1 class="page-title">@CategoryDisplayName</h1>
+        
+        @if (products != null && products.Any())
+        {
+            <div class="product-grid">
+                @foreach (var product in products)
+                {
+                    <div class="product-card">
+                        @if (product.Images != null && product.Images.Any(i => i.IsPrimary))
+                        {
+                            var primaryImage = product.Images.First(i => i.IsPrimary);
+                            var imageUrl = primaryImage.ImageUrl?.Replace(" ", "%20") ?? "";
+                            <img src="@imageUrl" alt="@product.Name" class="product-image" />
+                        }
+                        else if (product.Images != null && product.Images.Any())
+                        {
+                            var firstImage = product.Images.First();
+                            var imageUrl = firstImage.ImageUrl?.Replace(" ", "%20") ?? "";
+                            <img src="@imageUrl" alt="@product.Name" class="product-image" />
+                        }
+                        else
+                        {
+                            <div class="product-image-placeholder">No Image</div>
+                        }
+                        <div class="product-info">
+                            <h3 class="product-name">@product.Name</h3>
+                            <p class="product-status">@product.Status</p>
+                            @if (product.Price.HasValue)
+                            {
+                                <p class="product-price">$@product.Price.Value.ToString("F2")</p>
+                            }
+                            <a href="/products/@product.Id" class="btn-secondary">View Details</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="no-products">No products found in this category.</p>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string CategoryName { get; set; } = "";
+    
+    private IEnumerable<Product>? products;
+    private string CategoryDisplayName => CategoryName switch
+    {
+        "woodworking" => "Woodworking",
+        "engraving" => "Engraving",
+        "crochet" => "Crochet",
+        _ => "Products"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Enum.TryParse<ProductCategory>(CategoryDisplayName, true, out var category))
+        {
+            var allProducts = await ProductRepository.GetByCategoryAsync(category, includeImages: true);
+            products = allProducts.Where(p => p.IsPublic).OrderByDescending(p => p.CreatedDate).ToList();
+        }
+        else
+        {
+            products = new List<Product>();
+        }
+    }
+}
+

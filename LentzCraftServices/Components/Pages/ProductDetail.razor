@@ -1,0 +1,103 @@
+@page "/products/{ProductId:int}"
+@inject IProductRepository ProductRepository
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>@(product?.Name ?? "Product") - Lentz Crafts & Services</PageTitle>
+
+@if (product == null)
+{
+    <div class="container">
+        <p>Product not found.</p>
+        <a href="/products" class="btn-primary">Back to Products</a>
+    </div>
+}
+else if (!product.IsPublic)
+{
+    <div class="container">
+        <p>This product is not available for public viewing.</p>
+        <a href="/products" class="btn-primary">Back to Products</a>
+    </div>
+}
+else
+{
+    <div class="product-detail-page">
+        <div class="container">
+            <a href="/products" class="back-link">← Back to Products</a>
+            
+            <div class="product-detail-grid">
+                <div class="product-images">
+                    @if (product.Images != null && product.Images.Any())
+                    {
+                        var primaryImage = product.Images.FirstOrDefault(i => i.IsPrimary) ?? product.Images.First();
+                        var primaryImageUrl = primaryImage.ImageUrl?.Replace(" ", "%20") ?? "";
+                        <img src="@primaryImageUrl" alt="@product.Name" class="product-main-image" />
+                        
+                        @if (product.Images.Count > 1)
+                        {
+                            <div class="product-thumbnails">
+                                @foreach (var image in product.Images)
+                                {
+                                    var imageUrl = image.ImageUrl?.Replace(" ", "%20") ?? "";
+                                    <img src="@imageUrl" alt="@product.Name" class="product-thumbnail" />
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="product-image-placeholder-large">No Image Available</div>
+                    }
+                </div>
+                
+                <div class="product-details">
+                    <h1 class="product-title">@product.Name</h1>
+                    <p class="product-meta">
+                        <span class="product-category-badge">@product.Category</span>
+                        <span class="product-status-badge">@product.Status</span>
+                    </p>
+                    
+                    @if (product.Price.HasValue)
+                    {
+                        <p class="product-price-large">$@product.Price.Value.ToString("F2")</p>
+                    }
+                    
+                    <div class="product-description">
+                        <h3>Description</h3>
+                        <p>@product.Description</p>
+                    </div>
+                    
+                    @if (product.Status == ProductStatus.Available && product.Quantity > 0)
+                    {
+                        <div class="product-availability">
+                            <p><strong>Quantity Available:</strong> @product.Quantity</p>
+                        </div>
+                        
+                        <div class="product-actions">
+                            <a href="/contact?product=@product.Id" class="btn-primary btn-large">Inquire About This Item</a>
+                        </div>
+                    }
+                    else if (product.Status == ProductStatus.Sold)
+                    {
+                        <p class="product-sold-notice">This item has been sold.</p>
+                    }
+                    else if (product.Status == ProductStatus.DisplayOnly)
+                    {
+                        <p class="product-display-notice">This item is for display purposes only.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int ProductId { get; set; }
+    private Product? product;
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await ProductRepository.GetByIdAsync(ProductId, includeImages: true);
+    }
+}
+

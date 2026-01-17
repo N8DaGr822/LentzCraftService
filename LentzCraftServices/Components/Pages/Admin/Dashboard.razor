@@ -1,0 +1,52 @@
+@page "/admin"
+@attribute [Authorize]
+@inject IProductRepository ProductRepository
+@rendermode InteractiveServer
+
+<PageTitle>Admin Dashboard - Lentz Crafts & Services</PageTitle>
+
+<div class="admin-page">
+    <div class="container">
+        <h1 class="page-title">Admin Dashboard</h1>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>Total Items</h3>
+                <p class="stat-value">@totalItems</p>
+            </div>
+            <div class="stat-card">
+                <h3>Available</h3>
+                <p class="stat-value">@availableItems</p>
+            </div>
+            <div class="stat-card">
+                <h3>Sold</h3>
+                <p class="stat-value">@soldItems</p>
+            </div>
+            <div class="stat-card">
+                <h3>Display Only</h3>
+                <p class="stat-value">@displayOnlyItems</p>
+            </div>
+        </div>
+        
+        <div class="admin-actions">
+            <a href="/admin/products" class="btn-primary">Manage Products</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int totalItems = 0;
+    private int availableItems = 0;
+    private int soldItems = 0;
+    private int displayOnlyItems = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allProducts = await ProductRepository.GetAllAsync();
+        totalItems = allProducts.Count();
+        availableItems = allProducts.Count(p => p.Status == ProductStatus.Available);
+        soldItems = allProducts.Count(p => p.Status == ProductStatus.Sold);
+        displayOnlyItems = allProducts.Count(p => p.Status == ProductStatus.DisplayOnly);
+    }
+}
+

@@ -1,0 +1,119 @@
+@page "/products"
+@inject IProductRepository ProductRepository
+@rendermode InteractiveServer
+
+<PageTitle>Products - Lentz Crafts & Services</PageTitle>
+
+<div class="products-page">
+    <div class="container">
+        <h1 class="page-title">Our Portfolio</h1>
+        
+        <div class="filter-section">
+            <div class="filter-group">
+                <label>Category:</label>
+                <select value="@selectedCategory" @onchange="OnCategoryChanged" class="filter-select">
+                    <option value="">All Categories</option>
+                    <option value="Woodworking">Woodworking</option>
+                    <option value="Engraving">Engraving</option>
+                    <option value="Crochet">Crochet</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Status:</label>
+                <select value="@selectedStatus" @onchange="OnStatusChanged" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="Available">Available</option>
+                    <option value="Sold">Sold</option>
+                    <option value="DisplayOnly">Display Only</option>
+                </select>
+            </div>
+        </div>
+
+        @if (products != null && products.Any())
+        {
+            <div class="product-grid">
+                @foreach (var product in products)
+                {
+                    <div class="product-card">
+                        @if (product.Images != null && product.Images.Any(i => i.IsPrimary))
+                        {
+                            var primaryImage = product.Images.First(i => i.IsPrimary);
+                            var imageUrl = primaryImage.ImageUrl?.Replace(" ", "%20") ?? "";
+                            <img src="@imageUrl" alt="@product.Name" class="product-image" />
+                        }
+                        else if (product.Images != null && product.Images.Any())
+                        {
+                            var firstImage = product.Images.First();
+                            var imageUrl = firstImage.ImageUrl?.Replace(" ", "%20") ?? "";
+                            <img src="@imageUrl" alt="@product.Name" class="product-image" />
+                        }
+                        else
+                        {
+                            <div class="product-image-placeholder">No Image</div>
+                        }
+                        <div class="product-info">
+                            <h3 class="product-name">@product.Name</h3>
+                            <p class="product-category">@product.Category</p>
+                            <p class="product-status">@product.Status</p>
+                            @if (product.Price.HasValue)
+                            {
+                                <p class="product-price">$@product.Price.Value.ToString("F2")</p>
+                            }
+                            <a href="/products/@product.Id" class="btn-secondary">View Details</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="no-products">No products found matching your criteria.</p>
+        }
+    </div>
+</div>
+
+@code {
+    private IEnumerable<Product>? products;
+    private string selectedCategory = "";
+    private string selectedStatus = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        var allProducts = await ProductRepository.GetPublicProductsAsync(includeImages: true);
+        
+        if (!string.IsNullOrEmpty(selectedCategory) && Enum.TryParse<ProductCategory>(selectedCategory, out var category))
+        {
+            allProducts = allProducts.Where(p => p.Category == category);
+        }
+        
+        if (!string.IsNullOrEmpty(selectedStatus) && Enum.TryParse<ProductStatus>(selectedStatus, out var status))
+        {
+            allProducts = allProducts.Where(p => p.Status == status);
+        }
+        
+        products = allProducts.OrderByDescending(p => p.CreatedDate).ToList();
+    }
+
+    private async Task OnCategoryChanged(ChangeEventArgs e)
+    {
+        selectedCategory = e.Value?.ToString() ?? "";
+        await LoadProducts();
+    }
+
+    private async Task OnStatusChanged(ChangeEventArgs e)
+    {
+        selectedStatus = e.Value?.ToString() ?? "";
+        await LoadProducts();
+    }
+    
+    private async Task OnSearchChanged(ChangeEventArgs e)
+    {
+        await LoadProducts();
+    }
+}
+

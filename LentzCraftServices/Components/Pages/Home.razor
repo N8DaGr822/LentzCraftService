@@ -1,0 +1,140 @@
+﻿@page "/"
+@inject IProductRepository ProductRepository
+@rendermode InteractiveServer
+
+<PageTitle>Lentz Crafts & Services - Handcrafted Excellence</PageTitle>
+
+<!-- Hero Banner Section -->
+<div class="hero-banner-section">
+    <div class="hero-banner-overlay">
+        <div class="hero-banner-content">
+            <h1 class="hero-banner-title">Handcrafted. Reliable. Local.</h1>
+            <p class="hero-banner-tagline">Quality Craft & Home Services You Can Trust</p>
+            <div class="hero-banner-buttons">
+                <a href="/contact" class="btn-hero btn-hero-primary">Request a Quote</a>
+                <a href="/products" class="btn-hero btn-hero-secondary">View Our Work</a>
+            </div>
+        </div>
+    </div>
+    <div class="hero-banner-image">
+        <img src="/images/Banner.png" alt="Lentz Crafts & Services - Handcrafted Excellence" class="banner-image" />
+    </div>
+</div>
+
+<!-- Our Services Section -->
+<div class="services-section">
+    <div class="container">
+        <h2 class="section-heading">Our Services</h2>
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-image">
+                    <div class="service-image-placeholder">
+                        <img src="/images/handymantools.png" alt="Handyman Services" class="service-image-img" />
+                    </div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Handyman Services</h3>
+                    <ul class="service-features">
+                        <li>Repairs & Installations</li>
+                        <li>Home Maintenance</li>
+                        <li>Small Remodels</li>
+                    </ul>
+                    <a href="/contact" class="btn-service btn-service-green">Learn More</a>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-image">
+                    <div class="service-image-placeholder">
+                        <img src="/images/engraving.png" alt="Handyman Services" class="service-image-img" />                    </div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Woodworking & Engraving</h3>
+                    <ul class="service-features">
+                        <li>Custom Woodwork</li>
+                        <li>Personalized Gifts</li>
+                        <li>Home Décor</li>
+                    </ul>
+                    <a href="/products" class="btn-service btn-service-brown">Learn More</a>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-image">
+                    <div class="service-image-placeholder">
+                        <img src="/images/crochet.png" alt="Handyman Services" class="service-image-img" />                    </div>
+                </div>
+                <div class="service-content">
+                    <h3 class="service-title">Crochet & Handmade Goods</h3>
+                    <ul class="service-features">
+                        <li>Custom Creations</li>
+                        <li>Hats & Gifts</li>
+                        <li>Seasonal Items</li>
+                    </ul>
+                    <a href="/products" class="btn-service btn-service-brown">Learn More</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Why Choose Us Section -->
+<div class="why-choose-section">
+    <div class="container">
+        <h2 class="section-heading">Why Choose Lentz Craft & Services?</h2>
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon">🏠</div>
+                <h3 class="feature-title">Locally Owned</h3>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">✓</div>
+                <h3 class="feature-title">Quality Workmanship</h3>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">❤️</div>
+                <h3 class="feature-title">Attention to Detail</h3>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">💰</div>
+                <h3 class="feature-title">Honest Pricing</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Our Work Gallery Section -->
+<div class="work-gallery-section">
+    <div class="container">
+        <h2 class="section-heading section-heading-light">Our Work: Crafted with Care</h2>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <div class="gallery-image-placeholder">
+                    <img src="/images/crochet/DaisyTowel.jpg" alt="Our Work - Bookshelf" class="gallery-image" />
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image-placeholder">
+                    <img src="/images/woodworking/EngravedBoxes.jpg" alt="Our Work - Engraved Cutting Board" class="gallery-image" />
+                </div>
+            </div>
+            <div class="gallery-item">
+                <div class="gallery-image-placeholder">
+                    <img src="/images/crochet/RippleBlanket.jpg" alt="Our Work - Crochet Items" class="gallery-image" />
+                </div>
+            </div>
+        </div>
+        <div class="gallery-cta">
+            <a href="/products" class="btn-gallery">View Gallery</a>
+        </div>
+    </div>
+</div>
+
+<!-- Ready to Get Started Section -->
+<div class="cta-section">
+    <div class="container">
+        <h2 class="section-heading section-heading-light">Ready to Get Started?</h2>
+        <p class="cta-tagline">Contact us today for a free quote!</p>
+        <a href="/contact" class="btn-cta">Get a Free Quote</a>
+    </div>
+</div>

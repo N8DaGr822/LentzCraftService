@@ -1,0 +1,41 @@
+Crochet Product Image Mapping
+==============================
+
+This file lists the expected image filenames for each crochet product.
+Place your images in this folder with the following names:
+
+1. RippleBlanket.jpg         - Ripple Blanket
+2. BabyBooties2.jpg          - Baby Booties 2
+3. Animalhats.jpg            - Animal Hats
+4. BabyBlanket.jpg           - Baby Blanket
+5. BabyBooties.jpg           - Baby Booties
+6. BabyBooties3.jpg          - Baby Booties 3
+7. BabyBooties4.jpg          - Baby Booties 4
+8. BabyBooties5.jpg          - Baby Booties 5
+9. BabyBooties6.jpg          - Baby Booties 6
+10. BabyFlipFlops.jpg        - Baby Flip Flops
+11. BabyFlipFlops2.jpg       - Baby Flip Flops 2
+12. Bootcuffs1.jpg           - Boot Cuffs 1
+13. Bootcuffs2.jpg           - Boot Cuffs 2
+14. Bootcuffs3.jpg           - Boot Cuffs 3
+15. ChiefsCupCozy.jpg        - Chiefs Cup Cozy
+16. CupCozies.jpg            - Cup Cozies
+17. CupCozies2.jpg           - Cup Cozies 2
+18. DaisyTowel.jpg          - Daisy Towel
+19. DaisyBabyBooties.jpg     - Daisy Baby Booties
+20. WinterTowel.jpg          - Winter Towel
+21. item-20.jpg              - Crochet Item 20 (Image needed)
+22. item-21.jpg              - Crochet Item 21 (Image needed)
+23. item-22.jpg              - Crochet Item 22 (Image needed)
+24. item-23.jpg              - Crochet Item 23 (Image needed)
+25. item-24.jpg              - Crochet Item 24 (Image needed)
+26. item-25.jpg              - Crochet Item 25 (Image needed)
+27. item-26.jpg              - Crochet Item 26 (Image needed)
+
+Total: 27 crochet products
+Images available: 20
+Images needed: 7
+
+Note: Image formats can be .jpg, .jpeg, .png, or .webp
+      The database will reference these as /images/crochet/[filename]
+      Note: "Daisy Towel.jpg" contains a space - ensure URL encoding if needed

@@ -1,0 +1,61 @@
+@page "/500"
+@page "/ServerError"
+
+<PageTitle>Server Error - Lentz Crafts & Services</PageTitle>
+
+<div class="error-page">
+    <div class="container">
+        <div class="error-content">
+            <h1 class="error-code">500</h1>
+            <h2 class="error-title">Internal Server Error</h2>
+            <p class="error-message">
+                We're sorry, but something went wrong on our end. We've been notified and are working to fix the issue.
+            </p>
+            <div class="error-actions">
+                <a href="/" class="btn-primary">Go to Home</a>
+                <a href="javascript:history.back()" class="btn-secondary">Go Back</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-page {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    .error-content {
+        text-align: center;
+    }
+
+    .error-code {
+        font-size: 8rem;
+        font-weight: bold;
+        color: var(--primary-color, #8B4513);
+        margin: 0;
+        line-height: 1;
+    }
+
+    .error-title {
+        font-size: 2rem;
+        margin: 1rem 0;
+        color: var(--text-color, #333);
+    }
+
+    .error-message {
+        font-size: 1.1rem;
+        color: var(--text-secondary, #666);
+        margin-bottom: 2rem;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+</style>
