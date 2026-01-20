@@ -1,5 +1,6 @@
 ﻿@inject NavigationManager Navigation
 @inject SignInManager<IdentityUser> SignInManager
+@rendermode InteractiveServer
 
 <div class="navbar">
     <div class="container">
@@ -16,7 +17,7 @@
         <nav class="nav-links @(isMenuOpen ? "active" : "")">
             <NavLink href="/" Match="NavLinkMatch.All" class="nav-link" @onclick="CloseMenu">Home</NavLink>
             <NavLink href="/about" class="nav-link" @onclick="CloseMenu">About</NavLink>
-            <NavLink href="/products" class="nav-link" @onclick="CloseMenu">Services</NavLink>
+            <NavLink href="/services" class="nav-link" @onclick="CloseMenu">Services</NavLink>
             <NavLink href="/products" class="nav-link" @onclick="CloseMenu">Gallery</NavLink>
             <NavLink href="/contact" class="nav-link nav-link-contact" @onclick="CloseMenu">Contact</NavLink>
             
@@ -46,10 +47,12 @@
     private void ToggleMenu()
     {
         isMenuOpen = !isMenuOpen;
+        StateHasChanged();
     }
     
     private void CloseMenu()
     {
         isMenuOpen = false;
+        StateHasChanged();
     }
 }

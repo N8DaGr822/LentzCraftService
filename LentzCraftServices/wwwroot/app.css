@@ -394,7 +394,7 @@ h1, h2, h3, h4, h5, h6 {
     width: 30px;
     height: 30px;
     cursor: pointer;
-    z-index: 1001;
+    z-index: 1002;
     border: none;
     background: transparent;
     padding: 0;
@@ -1034,32 +1034,60 @@ h1, h2, h3, h4, h5, h6 {
     .navbar {
         height: auto;
         min-height: 4em;
+        position: relative;
     }
     
     .navbar-toggler {
-        display: block;
+        display: block !important;
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1003 !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 5px !important;
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+    
+    .navbar-brand {
+        z-index: 1001;
+        position: relative;
+        padding-right: 60px;
+        flex: 1;
+    }
+    
+    .navbar .container {
+        position: relative;
     }
     
     .nav-links {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: linear-gradient(135deg, #5C4A37 0%, #4A3A2A 50%, #3D2F20 100%);
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0;
-        width: 100%;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease, box-shadow 0.3s ease;
-        box-shadow: none;
-        border-top: 2px solid rgba(0, 0, 0, 0.3);
+        display: flex !important;
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        background: linear-gradient(135deg, #5C4A37 0%, #4A3A2A 50%, #3D2F20 100%) !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0 !important;
+        width: 100% !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transition: max-height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease, box-shadow 0.3s ease !important;
+        box-shadow: none !important;
+        border-top: 2px solid rgba(0, 0, 0, 0.3) !important;
+        padding: 0 !important;
     }
     
     .nav-links.active {
-        max-height: 500px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        max-height: 500px !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
     }
     
     .nav-link {
@@ -1375,12 +1403,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-service-green {
-    background-color: #4CAF50;
+    background-color: #8B7355;
     color: white;
 }
 
 .btn-service-green:hover {
-    background-color: #45a049;
+    background-color: #7A6345;
 }
 
 .btn-service-brown {
@@ -1423,9 +1451,116 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Work Gallery Section */
 .work-gallery-section {
-    background: linear-gradient(135deg, #8B7355 0%, #6B5D4F 100%);
+    background: #3a2e1f;
     padding: 4rem 0;
     color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Wood Texture Background for Gallery */
+.work-gallery-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        /* Wood grain lines - vertical */
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 1px,
+            rgba(0, 0, 0, 0.15) 1px,
+            rgba(0, 0, 0, 0.15) 2px,
+            transparent 2px,
+            transparent 3px,
+            rgba(0, 0, 0, 0.08) 3px,
+            rgba(0, 0, 0, 0.08) 4px
+        ),
+        /* Wood grain lines - horizontal variations */
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 8px,
+            rgba(139, 69, 19, 0.2) 8px,
+            rgba(139, 69, 19, 0.2) 9px,
+            transparent 9px,
+            transparent 15px,
+            rgba(101, 67, 33, 0.15) 15px,
+            rgba(101, 67, 33, 0.15) 16px,
+            transparent 16px,
+            transparent 22px,
+            rgba(160, 82, 45, 0.1) 22px,
+            rgba(160, 82, 45, 0.1) 23px
+        ),
+        /* Diagonal grain pattern */
+        repeating-linear-gradient(
+            2deg,
+            transparent,
+            transparent 20px,
+            rgba(80, 50, 25, 0.12) 20px,
+            rgba(80, 50, 25, 0.12) 21px
+        ),
+        /* Base wood color variations */
+        linear-gradient(
+            90deg,
+            #4a3a2a 0%,
+            #3a2e1f 8%,
+            #4a3a2a 15%,
+            #2d2419 25%,
+            #3a2e1f 35%,
+            #4a3a2a 45%,
+            #2d2419 55%,
+            #3a2e1f 65%,
+            #4a3a2a 75%,
+            #2d2419 85%,
+            #3a2e1f 92%,
+            #4a3a2a 100%
+        );
+    background-size: 
+        100% 100%,
+        100% 100%,
+        100% 100%,
+        100% 100%;
+    opacity: 0.85;
+    z-index: 0;
+}
+
+/* Deep Stain Overlay for Gallery */
+.work-gallery-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(
+            ellipse at 30% 50%,
+            rgba(25, 15, 8, 0.4) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            ellipse at 70% 50%,
+            rgba(30, 18, 10, 0.3) 0%,
+            transparent 50%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(35, 22, 12, 0.75) 0%,
+            rgba(28, 17, 9, 0.85) 25%,
+            rgba(25, 15, 8, 0.8) 50%,
+            rgba(28, 17, 9, 0.85) 75%,
+            rgba(35, 22, 12, 0.75) 100%
+        );
+    z-index: 1;
+}
+
+.work-gallery-section .container {
+    position: relative;
+    z-index: 2;
 }
 
 .section-heading-light {
@@ -1493,10 +1628,117 @@ h1, h2, h3, h4, h5, h6 {
 
 /* CTA Section */
 .cta-section {
-    background: linear-gradient(135deg, #8B7355 0%, #6B5D4F 100%);
+    background: #3a2e1f;
     padding: 4rem 0;
     text-align: center;
     color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Wood Texture Background */
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        /* Wood grain lines - vertical */
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 1px,
+            rgba(0, 0, 0, 0.15) 1px,
+            rgba(0, 0, 0, 0.15) 2px,
+            transparent 2px,
+            transparent 3px,
+            rgba(0, 0, 0, 0.08) 3px,
+            rgba(0, 0, 0, 0.08) 4px
+        ),
+        /* Wood grain lines - horizontal variations */
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 8px,
+            rgba(139, 69, 19, 0.2) 8px,
+            rgba(139, 69, 19, 0.2) 9px,
+            transparent 9px,
+            transparent 15px,
+            rgba(101, 67, 33, 0.15) 15px,
+            rgba(101, 67, 33, 0.15) 16px,
+            transparent 16px,
+            transparent 22px,
+            rgba(160, 82, 45, 0.1) 22px,
+            rgba(160, 82, 45, 0.1) 23px
+        ),
+        /* Diagonal grain pattern */
+        repeating-linear-gradient(
+            2deg,
+            transparent,
+            transparent 20px,
+            rgba(80, 50, 25, 0.12) 20px,
+            rgba(80, 50, 25, 0.12) 21px
+        ),
+        /* Base wood color variations */
+        linear-gradient(
+            90deg,
+            #4a3a2a 0%,
+            #3a2e1f 8%,
+            #4a3a2a 15%,
+            #2d2419 25%,
+            #3a2e1f 35%,
+            #4a3a2a 45%,
+            #2d2419 55%,
+            #3a2e1f 65%,
+            #4a3a2a 75%,
+            #2d2419 85%,
+            #3a2e1f 92%,
+            #4a3a2a 100%
+        );
+    background-size: 
+        100% 100%,
+        100% 100%,
+        100% 100%,
+        100% 100%;
+    opacity: 0.85;
+    z-index: 0;
+}
+
+/* Deep Stain Overlay */
+.cta-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(
+            ellipse at 30% 50%,
+            rgba(25, 15, 8, 0.4) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            ellipse at 70% 50%,
+            rgba(30, 18, 10, 0.3) 0%,
+            transparent 50%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(35, 22, 12, 0.75) 0%,
+            rgba(28, 17, 9, 0.85) 25%,
+            rgba(25, 15, 8, 0.8) 50%,
+            rgba(28, 17, 9, 0.85) 75%,
+            rgba(35, 22, 12, 0.75) 100%
+        );
+    z-index: 1;
+}
+
+.cta-section .container {
+    position: relative;
+    z-index: 2;
 }
 
 .cta-tagline {
@@ -1556,13 +1798,20 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
+.about-page {
+    background-color: #000;
+    color: white;
+    min-height: 100vh;
+    padding: 2rem 0 4rem;
+}
+
 .about-title {
     font-size: 3rem;
     font-weight: 400;
     font-style: italic;
     text-align: center;
     margin: 3rem 0 4rem;
-    color: var(--text-dark);
+    color: white;
     position: relative;
     display: flex;
     align-items: center;
@@ -1575,7 +1824,7 @@ h1, h2, h3, h4, h5, h6 {
     content: '';
     flex: 1;
     height: 1px;
-    background-color: var(--border-color);
+    background-color: rgba(255, 255, 255, 0.3);
     max-width: 200px;
 }
 
@@ -1640,7 +1889,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .about-image-text {
-    color: var(--text-light);
+    color: rgba(255, 255, 255, 0.8);
     font-size: 0.9rem;
     font-style: italic;
 }
@@ -1649,6 +1898,12 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+.about-text-content p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    line-height: 1.8;
 }
 
 .about-text-block {
@@ -1661,7 +1916,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 1.25rem;
     font-weight: 300;
     font-style: italic;
-    color: var(--text-medium);
+    color: rgba(255, 255, 255, 0.9);
     margin-bottom: 1rem;
 }
 
@@ -1670,7 +1925,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--text-dark);
+    color: white;
     margin-bottom: 1.5rem;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -1678,7 +1933,7 @@ h1, h2, h3, h4, h5, h6 {
 .about-section p {
     font-size: 1rem;
     line-height: 1.8;
-    color: var(--text-medium);
+    color: rgba(255, 255, 255, 0.9);
     margin-bottom: 1rem;
 }
 
@@ -1697,14 +1952,14 @@ h1, h2, h3, h4, h5, h6 {
 .craft-category h3 {
     font-size: 1.1rem;
     font-weight: 500;
-    color: var(--text-dark);
+    color: white;
     margin-bottom: 0.75rem;
 }
 
 .craft-category p {
     font-size: 0.95rem;
     line-height: 1.7;
-    color: var(--text-medium);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .craft-category-image-wrapper {
@@ -1739,24 +1994,139 @@ h1, h2, h3, h4, h5, h6 {
 
 .about-contact {
     text-align: center;
-    padding: 2rem 0;
-    border-top: 1px solid var(--border-color);
+    padding: 2.5rem 2rem;
+    border-top: none;
     margin-top: 3rem;
+    background: #3a2e1f;
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+/* Wood Texture Background for About Contact */
+.about-contact::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        /* Wood grain lines - vertical */
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 1px,
+            rgba(0, 0, 0, 0.15) 1px,
+            rgba(0, 0, 0, 0.15) 2px,
+            transparent 2px,
+            transparent 3px,
+            rgba(0, 0, 0, 0.08) 3px,
+            rgba(0, 0, 0, 0.08) 4px
+        ),
+        /* Wood grain lines - horizontal variations */
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 8px,
+            rgba(139, 69, 19, 0.2) 8px,
+            rgba(139, 69, 19, 0.2) 9px,
+            transparent 9px,
+            transparent 15px,
+            rgba(101, 67, 33, 0.15) 15px,
+            rgba(101, 67, 33, 0.15) 16px,
+            transparent 16px,
+            transparent 22px,
+            rgba(160, 82, 45, 0.1) 22px,
+            rgba(160, 82, 45, 0.1) 23px
+        ),
+        /* Diagonal grain pattern */
+        repeating-linear-gradient(
+            2deg,
+            transparent,
+            transparent 20px,
+            rgba(80, 50, 25, 0.12) 20px,
+            rgba(80, 50, 25, 0.12) 21px
+        ),
+        /* Base wood color variations */
+        linear-gradient(
+            90deg,
+            #4a3a2a 0%,
+            #3a2e1f 8%,
+            #4a3a2a 15%,
+            #2d2419 25%,
+            #3a2e1f 35%,
+            #4a3a2a 45%,
+            #2d2419 55%,
+            #3a2e1f 65%,
+            #4a3a2a 75%,
+            #2d2419 85%,
+            #3a2e1f 92%,
+            #4a3a2a 100%
+        );
+    background-size: 
+        100% 100%,
+        100% 100%,
+        100% 100%,
+        100% 100%;
+    opacity: 0.85;
+    z-index: 0;
+}
+
+/* Deep Stain Overlay for About Contact */
+.about-contact::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(
+            ellipse at 30% 50%,
+            rgba(25, 15, 8, 0.4) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            ellipse at 70% 50%,
+            rgba(30, 18, 10, 0.3) 0%,
+            transparent 50%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(35, 22, 12, 0.75) 0%,
+            rgba(28, 17, 9, 0.85) 25%,
+            rgba(25, 15, 8, 0.8) 50%,
+            rgba(28, 17, 9, 0.85) 75%,
+            rgba(35, 22, 12, 0.75) 100%
+        );
+    z-index: 1;
+}
+
+.about-contact p,
+.about-contact a {
+    position: relative;
+    z-index: 2;
 }
 
 .about-contact p {
     font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.about-contact p strong {
+    color: white;
 }
 
 .about-contact a {
-    color: var(--accent-color);
+    color: #4CAF50;
     text-decoration: none;
     font-weight: 500;
     transition: var(--transition);
 }
 
 .about-contact a:hover {
-    color: var(--accent-hover);
+    color: #45a049;
     text-decoration: underline;
 }
 
@@ -1787,6 +2157,10 @@ h1, h2, h3, h4, h5, h6 {
         aspect-ratio: 4 / 3;
     }
     
+    .about-text-block {
+        margin-top: 23em;
+    }
+    
     .about-section-heading {
         font-size: 0.9rem;
     }
@@ -1807,5 +2181,401 @@ h1, h2, h3, h4, h5, h6 {
     
     .craft-category-image img {
         aspect-ratio: 4 / 3;
+    }
+}
+
+/* Services Page Styles */
+.services-page {
+    background-color: #000;
+    color: white;
+    min-height: 100vh;
+    padding: 2rem 0 4rem;
+}
+
+.services-page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.services-page-intro {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    line-height: 1.6;
+}
+
+.service-detail-section {
+    margin-bottom: 4rem;
+    padding: 2rem 0;
+}
+
+.service-detail-section-alt {
+    background-color: rgba(139, 115, 85, 0.1);
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+.service-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.service-detail-icon {
+    font-size: 2.5rem;
+}
+
+.service-detail-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: white;
+    margin: 0;
+}
+
+.service-detail-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+.service-detail-content-reverse {
+    direction: rtl;
+}
+
+.service-detail-content-reverse > * {
+    direction: ltr;
+}
+
+.service-detail-image {
+    width: 100%;
+    height: 300px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.service-detail-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.service-detail-text {
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.service-detail-description {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.service-detail-subtitle {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: white;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.service-detail-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 2rem;
+}
+
+.service-detail-list li {
+    padding: 0.75rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.service-detail-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #8B7355;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.service-detail-list li strong {
+    color: white;
+}
+
+.service-detail-cta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
+.btn-service-detail {
+    display: inline-block;
+    padding: 12px 28px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: var(--transition);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-service-detail:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-service-detail-secondary {
+    background-color: #8B7355;
+}
+
+.btn-service-detail-secondary:hover {
+    background-color: #6B5D4F;
+}
+
+.services-why-choose {
+    background-color: rgba(139, 115, 85, 0.15);
+    padding: 3rem 2rem;
+    border-radius: 8px;
+    margin: 4rem 0;
+}
+
+.services-benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.service-benefit {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.service-benefit:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-4px);
+}
+
+.service-benefit-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.service-benefit h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.service-benefit p {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.services-cta {
+    background: #3a2e1f;
+    padding: 3rem 2rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 4rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Wood Texture Background for Services CTA */
+.services-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        /* Wood grain lines - vertical */
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 1px,
+            rgba(0, 0, 0, 0.15) 1px,
+            rgba(0, 0, 0, 0.15) 2px,
+            transparent 2px,
+            transparent 3px,
+            rgba(0, 0, 0, 0.08) 3px,
+            rgba(0, 0, 0, 0.08) 4px
+        ),
+        /* Wood grain lines - horizontal variations */
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 8px,
+            rgba(139, 69, 19, 0.2) 8px,
+            rgba(139, 69, 19, 0.2) 9px,
+            transparent 9px,
+            transparent 15px,
+            rgba(101, 67, 33, 0.15) 15px,
+            rgba(101, 67, 33, 0.15) 16px,
+            transparent 16px,
+            transparent 22px,
+            rgba(160, 82, 45, 0.1) 22px,
+            rgba(160, 82, 45, 0.1) 23px
+        ),
+        /* Diagonal grain pattern */
+        repeating-linear-gradient(
+            2deg,
+            transparent,
+            transparent 20px,
+            rgba(80, 50, 25, 0.12) 20px,
+            rgba(80, 50, 25, 0.12) 21px
+        ),
+        /* Base wood color variations */
+        linear-gradient(
+            90deg,
+            #4a3a2a 0%,
+            #3a2e1f 8%,
+            #4a3a2a 15%,
+            #2d2419 25%,
+            #3a2e1f 35%,
+            #4a3a2a 45%,
+            #2d2419 55%,
+            #3a2e1f 65%,
+            #4a3a2a 75%,
+            #2d2419 85%,
+            #3a2e1f 92%,
+            #4a3a2a 100%
+        );
+    background-size: 
+        100% 100%,
+        100% 100%,
+        100% 100%,
+        100% 100%;
+    opacity: 0.85;
+    z-index: 0;
+    border-radius: 8px;
+}
+
+/* Deep Stain Overlay for Services CTA */
+.services-cta::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(
+            ellipse at 30% 50%,
+            rgba(25, 15, 8, 0.4) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            ellipse at 70% 50%,
+            rgba(30, 18, 10, 0.3) 0%,
+            transparent 50%
+        ),
+        linear-gradient(
+            135deg,
+            rgba(35, 22, 12, 0.75) 0%,
+            rgba(28, 17, 9, 0.85) 25%,
+            rgba(25, 15, 8, 0.8) 50%,
+            rgba(28, 17, 9, 0.85) 75%,
+            rgba(35, 22, 12, 0.75) 100%
+        );
+    z-index: 1;
+    border-radius: 8px;
+}
+
+.services-cta h2,
+.services-cta p,
+.services-cta-buttons {
+    position: relative;
+    z-index: 2;
+}
+
+.services-cta-text {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 2rem;
+}
+
+.services-cta-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-cta-secondary {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+}
+
+.btn-cta-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive Design for Services Page */
+@media (max-width: 768px) {
+    .services-page-title {
+        font-size: 2rem;
+    }
+    
+    .service-detail-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .service-detail-content-reverse {
+        direction: ltr;
+    }
+    
+    .service-detail-image {
+        height: 250px;
+    }
+    
+    .service-detail-title {
+        font-size: 1.75rem;
+    }
+    
+    .services-benefits-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .service-detail-cta {
+        flex-direction: column;
+    }
+    
+    .btn-service-detail {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .services-cta-buttons {
+        flex-direction: column;
+    }
+    
+    .btn-cta,
+    .btn-cta-secondary {
+        width: 100%;
     }
 }

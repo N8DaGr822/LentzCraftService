@@ -1,5 +1,9 @@
 @page "/products"
+@page "/products/{Category?}"
+@using Microsoft.AspNetCore.WebUtilities
 @inject IProductRepository ProductRepository
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 <PageTitle>Products - Lentz Crafts & Services</PageTitle>
@@ -11,7 +15,7 @@
         <div class="filter-section">
             <div class="filter-group">
                 <label>Category:</label>
-                <select value="@selectedCategory" @onchange="OnCategoryChanged" class="filter-select">
+                <select @bind="selectedCategory" @bind:event="onchange" @onchange="OnCategoryChanged" class="filter-select">
                     <option value="">All Categories</option>
                     <option value="Woodworking">Woodworking</option>
                     <option value="Engraving">Engraving</option>
@@ -73,13 +77,61 @@
 </div>
 
 @code {
+    [Parameter]
+    public string? Category { get; set; }
+    
     private IEnumerable<Product>? products;
     private string selectedCategory = "";
     private string selectedStatus = "";
 
     protected override async Task OnInitializedAsync()
     {
+        // Read category from query parameter or route parameter
+        if (!string.IsNullOrEmpty(Category))
+        {
+            selectedCategory = Category;
+        }
+        else
+        {
+            // Try to get from query string
+            var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+            if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("category", out var categoryValues))
+            {
+                selectedCategory = categoryValues.FirstOrDefault() ?? "";
+            }
+        }
+        
         await LoadProducts();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Scroll to top when page first loads
+            await JSRuntime.InvokeVoidAsync("window.scrollTo", 0, 0);
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Re-read category when parameters change (e.g., query string changes)
+        if (!string.IsNullOrEmpty(Category))
+        {
+            selectedCategory = Category;
+        }
+        else
+        {
+            var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+            if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("category", out var categoryValues))
+            {
+                selectedCategory = categoryValues.FirstOrDefault() ?? "";
+            }
+        }
+        
+        await LoadProducts();
+        // Scroll to top when navigating with query parameters
+        await JSRuntime.InvokeVoidAsync("window.scrollTo", 0, 0);
     }
 
     private async Task LoadProducts()
