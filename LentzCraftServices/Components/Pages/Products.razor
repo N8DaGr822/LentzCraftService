@@ -15,7 +15,7 @@
         <div class="filter-section">
             <div class="filter-group">
                 <label>Category:</label>
-                <select @bind="selectedCategory" @bind:event="onchange" @onchange="OnCategoryChanged" class="filter-select">
+                <select value="@selectedCategory" @onchange="OnCategoryChanged" class="filter-select">
                     <option value="">All Categories</option>
                     <option value="Woodworking">Woodworking</option>
                     <option value="Engraving">Engraving</option>
@@ -83,6 +83,7 @@
     private IEnumerable<Product>? products;
     private string selectedCategory = "";
     private string selectedStatus = "";
+    private bool _shouldScrollToTop = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -106,9 +107,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (firstRender || _shouldScrollToTop)
         {
-            // Scroll to top when page first loads
+            _shouldScrollToTop = false;
             await JSRuntime.InvokeVoidAsync("window.scrollTo", 0, 0);
         }
     }
@@ -130,8 +131,8 @@
         }
         
         await LoadProducts();
-        // Scroll to top when navigating with query parameters
-        await JSRuntime.InvokeVoidAsync("window.scrollTo", 0, 0);
+        // Flag scroll-to-top for OnAfterRenderAsync (JS interop not available here during prerender)
+        _shouldScrollToTop = true;
     }
 
     private async Task LoadProducts()
