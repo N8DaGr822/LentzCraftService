@@ -1,5 +1,7 @@
 @page "/contact"
 @inject NavigationManager Navigation
+@inject IEmailService EmailService
+@inject ILogger<Contact> Logger
 @rendermode InteractiveServer
 
 <PageTitle>Contact - Lentz Crafts & Services</PageTitle>
@@ -93,16 +95,41 @@
     {
         isSubmitting = true;
         submitMessage = "";
-        
-        // In a real application, this would send an email or save to database
-        // For now, we'll just simulate a successful submission
-        await Task.Delay(1000);
-        
-        submitSuccess = true;
-        submitMessage = "Thank you for your message! We'll get back to you soon.";
-        contactModel = new ContactModel();
-        
-        isSubmitting = false;
+        submitSuccess = false;
+
+        try
+        {
+            var success = await EmailService.SendContactEmailAsync(
+                contactModel.Name,
+                contactModel.Email,
+                contactModel.Subject,
+                contactModel.Message);
+
+            if (success)
+            {
+                submitSuccess = true;
+                submitMessage = "Thank you for your message! We'll get back to you soon.";
+                Logger.LogInformation(
+                    "Contact form submitted successfully by {Name} ({Email})",
+                    contactModel.Name, contactModel.Email);
+                contactModel = new ContactModel();
+            }
+            else
+            {
+                submitSuccess = false;
+                submitMessage = "We're sorry, but there was an issue sending your message. Please try again or email us directly.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Unexpected error during contact form submission");
+            submitSuccess = false;
+            submitMessage = "An unexpected error occurred. Please try again later or email us directly.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
     }
 
     public class ContactModel

@@ -1,6 +1,8 @@
 using LentzCraftServices.Components;
+using LentzCraftServices.Infrastructure.Configuration;
 using LentzCraftServices.Infrastructure.Data;
 using LentzCraftServices.Infrastructure.Repositories;
+using LentzCraftServices.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
@@ -95,6 +97,11 @@ builder.Services.AddScoped<IProductRepository>(serviceProvider =>
     var logger = serviceProvider.GetRequiredService<ILogger<CachedProductRepository>>();
     return new CachedProductRepository(innerRepository, cache, logger);
 });
+
+// Configure email settings and register email service
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection(EmailSettings.SectionName));
+builder.Services.AddScoped<IEmailService, MailKitEmailService>();
 
 // Add HttpContextAccessor for server-side redirects
 builder.Services.AddHttpContextAccessor();

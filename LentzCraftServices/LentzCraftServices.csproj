@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\LentzCraftServices.Infrastructure\LentzCraftServices.Infrastructure.csproj" />
@@ -21,6 +21,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>fb1606de-b530-41d0-aba9-67a635e9843f</UserSecretsId>
   </PropertyGroup>
 
 </Project>

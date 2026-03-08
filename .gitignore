@@ -164,6 +164,9 @@ MigrationBackup/
 appsettings.Production.json
 appsettings.*.Production.json
 
+# User Secrets
+secrets.json
+
 # Environment files
 .env
 .env.local
