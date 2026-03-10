@@ -32,17 +32,15 @@ builder.Host.UseSerilog();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Configure Entity Framework Core with MySQL/MariaDB
+// Configure Entity Framework Core with SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-var serverVersion = ServerVersion.AutoDetect(connectionString);
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySql(connectionString, serverVersion, mySqlOptions =>
+    options.UseSqlServer(connectionString, sqlOptions =>
     {
-        mySqlOptions.EnableRetryOnFailure(
+        sqlOptions.EnableRetryOnFailure(
             maxRetryCount: 3,
             maxRetryDelay: TimeSpan.FromSeconds(5),
             errorNumbersToAdd: null);
