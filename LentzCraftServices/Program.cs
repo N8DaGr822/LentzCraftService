@@ -32,13 +32,21 @@ builder.Host.UseSerilog();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Configure Entity Framework Core with SQLite (or production database from connection string)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+// Configure Entity Framework Core with MySQL/MariaDB
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-    ?? "Data Source=lentzcrafts.db";
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+var serverVersion = ServerVersion.AutoDetect(connectionString);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+    options.UseMySql(connectionString, serverVersion, mySqlOptions =>
+    {
+        mySqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 3,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null);
+    }));
 
 // Configure ASP.NET Core Identity
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
@@ -124,10 +132,10 @@ using (var scope = app.Services.CreateScope())
     }
     else
     {
-        // In production, migrations should be applied via CI/CD or manually
-        // Uncomment the line below if you want automatic migration application
-        // await context.Database.MigrateAsync();
-        logger.LogInformation("Database migrations should be applied manually in production");
+        // Apply migrations automatically in production
+        logger.LogInformation("Applying database migrations...");
+        await context.Database.MigrateAsync();
+        logger.LogInformation("Database migrations applied successfully");
     }
     
     await DbInitializer.InitializeAsync(context, userManager, configuration, logger);
@@ -190,8 +198,8 @@ app.UseMiddleware<LentzCraftServices.Middleware.GlobalExceptionHandlerMiddleware
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Health checks endpoint
-app.MapHealthChecks("/health");
+// Health checks endpoint (restricted to authenticated users)
+app.MapHealthChecks("/health").RequireAuthorization();
 
 // Sitemap endpoint
 app.MapGet("/sitemap.xml", async (
