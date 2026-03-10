@@ -78,14 +78,12 @@ main {
     /* Navbar horizontal at top on desktop */
     .navbar {
         width: 100% !important;
-        height: 4em !important;
         flex-direction: row !important;
         position: sticky !important;
         top: 0 !important;
         left: auto !important;
         align-items: center !important;
-        padding: 0 !important;
-        padding-top: 1em !important;
+        padding: 0.5em 0 !important;
         border-bottom: 1px solid var(--border-color) !important;
         border-right: none !important;
     }

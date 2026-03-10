@@ -353,15 +353,13 @@ h1, h2, h3, h4, h5, h6 {
         ),
         linear-gradient(135deg, #5C4A37 0%, #4A3A2A 50%, #3D2F20 100%);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    padding: 0;
-    padding-top: 1em;
+    padding: 0.5em 0;
     margin-bottom: 0;
     position: sticky;
     top: 0;
     z-index: 1000;
     border-bottom: 2px solid rgba(0, 0, 0, 0.3);
     width: 100%;
-    height: 4em;
     display: flex;
     align-items: center;
 }
@@ -382,6 +380,14 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     color: #FFFFFF;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+}
+
+.brand-logo {
+    height: 3.5em;
+    width: auto;
+    object-fit: contain;
 }
 
 /* Hamburger Menu Toggle */

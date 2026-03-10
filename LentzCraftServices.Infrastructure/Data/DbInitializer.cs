@@ -45,9 +45,14 @@ public static class DbInitializer
         var adminEmail = configuration["Admin:Email"] 
             ?? Environment.GetEnvironmentVariable("ADMIN_EMAIL") 
             ?? "admin@lentzcrafts.com";
-        var adminPassword = configuration["Admin:Password"] 
-            ?? Environment.GetEnvironmentVariable("ADMIN_PASSWORD") 
-            ?? "Admin@123"; // Fallback for development only
+        var adminPassword = configuration["Admin:Password"]
+            ?? Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+
+        if (string.IsNullOrEmpty(adminPassword))
+        {
+            logger?.LogWarning("No admin password configured. Set 'Admin:Password' in configuration or 'ADMIN_PASSWORD' environment variable. Skipping admin user creation.");
+            return;
+        }
 
         var adminUser = new IdentityUser
         {
