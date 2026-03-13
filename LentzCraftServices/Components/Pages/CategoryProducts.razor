@@ -18,13 +18,13 @@
                         {
                             var primaryImage = product.Images.First(i => i.IsPrimary);
                             var imageUrl = primaryImage.ImageUrl?.Replace(" ", "%20") ?? "";
-                            <img src="@imageUrl" alt="@product.Name" class="product-image" />
+                            <img src="@imageUrl" alt="@product.Name" class="product-image" loading="lazy" />
                         }
                         else if (product.Images != null && product.Images.Any())
                         {
                             var firstImage = product.Images.First();
                             var imageUrl = firstImage.ImageUrl?.Replace(" ", "%20") ?? "";
-                            <img src="@imageUrl" alt="@product.Name" class="product-image" />
+                            <img src="@imageUrl" alt="@product.Name" class="product-image" loading="lazy" />
                         }
                         else
                         {

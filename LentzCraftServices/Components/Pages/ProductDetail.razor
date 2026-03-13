@@ -31,7 +31,7 @@ else
                     {
                         var primaryImage = product.Images.FirstOrDefault(i => i.IsPrimary) ?? product.Images.First();
                         var primaryImageUrl = primaryImage.ImageUrl?.Replace(" ", "%20") ?? "";
-                        <img src="@primaryImageUrl" alt="@product.Name" class="product-main-image" />
+                        <img src="@primaryImageUrl" alt="@product.Name" class="product-main-image" loading="eager" />
                         
                         @if (product.Images.Count > 1)
                         {
@@ -39,7 +39,7 @@ else
                                 @foreach (var image in product.Images)
                                 {
                                     var imageUrl = image.ImageUrl?.Replace(" ", "%20") ?? "";
-                                    <img src="@imageUrl" alt="@product.Name" class="product-thumbnail" />
+                                    <img src="@imageUrl" alt="@product.Name" class="product-thumbnail" loading="lazy" />
                                 }
                             </div>
                         }
