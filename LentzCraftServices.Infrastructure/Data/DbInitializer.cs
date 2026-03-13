@@ -19,10 +19,8 @@ public static class DbInitializer
         IConfiguration configuration,
         ILogger? logger = null)
     {
-        // Ensure database is created
-        await context.Database.EnsureCreatedAsync();
-
         // Always ensure admin user exists (independent of seeding)
+        // Note: Database creation/migration is handled in Program.cs before this is called
         await EnsureAdminUserAsync(userManager, configuration, logger);
 
         // Check if seeding is enabled (default: only in Development)

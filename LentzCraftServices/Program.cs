@@ -123,20 +123,27 @@ using (var scope = app.Services.CreateScope())
     var configuration = services.GetRequiredService<IConfiguration>();
     var logger = services.GetRequiredService<ILogger<Program>>();
     
-    // Apply migrations in production, ensure created in development
-    if (app.Environment.IsDevelopment())
+    try
     {
-        await context.Database.EnsureCreatedAsync();
+        // Apply migrations in production, ensure created in development
+        if (app.Environment.IsDevelopment())
+        {
+            await context.Database.EnsureCreatedAsync();
+        }
+        else
+        {
+            // Apply migrations automatically in production
+            logger.LogInformation("Applying database migrations...");
+            await context.Database.MigrateAsync();
+            logger.LogInformation("Database migrations applied successfully");
+        }
+
+        await DbInitializer.InitializeAsync(context, userManager, configuration, logger);
     }
-    else
+    catch (Exception ex)
     {
-        // Apply migrations automatically in production
-        logger.LogInformation("Applying database migrations...");
-        await context.Database.MigrateAsync();
-        logger.LogInformation("Database migrations applied successfully");
+        logger.LogError(ex, "An error occurred during database initialization");
     }
-    
-    await DbInitializer.InitializeAsync(context, userManager, configuration, logger);
 }
 
 // Configure the HTTP request pipeline.
