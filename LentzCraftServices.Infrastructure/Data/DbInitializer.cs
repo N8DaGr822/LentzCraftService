@@ -14,56 +14,34 @@ namespace LentzCraftServices.Infrastructure.Data;
 public static class DbInitializer
 {
     public static async Task InitializeAsync(
-        ApplicationDbContext context, 
+        ApplicationDbContext context,
         UserManager<IdentityUser> userManager,
         IConfiguration configuration,
         ILogger? logger = null)
     {
+        // Ensure database is created
+        await context.Database.EnsureCreatedAsync();
+
+        // Always ensure admin user exists (independent of seeding)
+        await EnsureAdminUserAsync(userManager, configuration, logger);
+
         // Check if seeding is enabled (default: only in Development)
         var enableSeedingValue = configuration["Database:EnableSeeding"];
-        var enableSeeding = string.IsNullOrEmpty(enableSeedingValue) 
+        var enableSeeding = string.IsNullOrEmpty(enableSeedingValue)
             ? string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development", StringComparison.OrdinalIgnoreCase)
             : bool.TryParse(enableSeedingValue, out var result) && result;
 
         if (!enableSeeding)
         {
-            logger?.LogInformation("Database seeding is disabled. Skipping initialization.");
+            logger?.LogInformation("Database seeding is disabled. Skipping product seeding.");
             return;
         }
-
-        // Ensure database is created
-        await context.Database.EnsureCreatedAsync();
 
         // Check if database has been seeded
         if (await context.Products.AnyAsync())
         {
             logger?.LogInformation("Database already contains products. Skipping seeding.");
             return; // Database already seeded
-        }
-
-        // Create admin user from configuration or environment variables
-        var adminEmail = configuration["Admin:Email"] 
-            ?? Environment.GetEnvironmentVariable("ADMIN_EMAIL") 
-            ?? "admin@lentzcrafts.com";
-        var adminPassword = configuration["Admin:Password"]
-            ?? Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
-
-        if (string.IsNullOrEmpty(adminPassword))
-        {
-            logger?.LogWarning("No admin password configured. Set 'Admin:Password' in configuration or 'ADMIN_PASSWORD' environment variable. Skipping admin user creation.");
-            return;
-        }
-
-        var adminUser = new IdentityUser
-        {
-            UserName = adminEmail,
-            Email = adminEmail,
-            EmailConfirmed = true
-        };
-
-        if (await userManager.FindByEmailAsync(adminEmail) == null)
-        {
-            await userManager.CreateAsync(adminUser, adminPassword);
         }
 
         // Seed sample products
@@ -570,6 +548,54 @@ public static class DbInitializer
 
         await context.Products.AddRangeAsync(products);
         await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Ensures the admin user exists. Runs independently of product seeding
+    /// so the admin can always log in regardless of seeding state.
+    /// </summary>
+    private static async Task EnsureAdminUserAsync(
+        UserManager<IdentityUser> userManager,
+        IConfiguration configuration,
+        ILogger? logger = null)
+    {
+        var adminEmail = configuration["Admin:Email"]
+            ?? Environment.GetEnvironmentVariable("ADMIN_EMAIL")
+            ?? "admin@lentzcraft.com";
+        var adminPassword = configuration["Admin:Password"]
+            ?? Environment.GetEnvironmentVariable("ADMIN_PASSWORD");
+
+        if (string.IsNullOrEmpty(adminPassword))
+        {
+            logger?.LogWarning("No admin password configured. Set 'Admin:Password' in configuration or 'ADMIN_PASSWORD' environment variable.");
+            return;
+        }
+
+        var existingUser = await userManager.FindByEmailAsync(adminEmail);
+        if (existingUser == null)
+        {
+            var adminUser = new IdentityUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true
+            };
+
+            var result = await userManager.CreateAsync(adminUser, adminPassword);
+            if (result.Succeeded)
+            {
+                logger?.LogInformation("Admin user created successfully: {Email}", adminEmail);
+            }
+            else
+            {
+                logger?.LogError("Failed to create admin user: {Errors}",
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+        }
+        else
+        {
+            logger?.LogInformation("Admin user already exists: {Email}", adminEmail);
+        }
     }
 }
 
