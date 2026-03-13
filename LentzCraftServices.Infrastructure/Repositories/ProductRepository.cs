@@ -145,5 +145,36 @@ public class ProductRepository : IProductRepository
     {
         return await _context.Products.AnyAsync(p => p.Id == id);
     }
+
+    public async Task<ProductImage> AddImageAsync(ProductImage image)
+    {
+        _context.Set<ProductImage>().Add(image);
+        await _context.SaveChangesAsync();
+        return image;
+    }
+
+    public async Task DeleteImageAsync(int imageId)
+    {
+        var image = await _context.Set<ProductImage>().FindAsync(imageId);
+        if (image != null)
+        {
+            _context.Set<ProductImage>().Remove(image);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task SetPrimaryImageAsync(int productId, int imageId)
+    {
+        var images = await _context.Set<ProductImage>()
+            .Where(i => i.ProductId == productId)
+            .ToListAsync();
+
+        foreach (var image in images)
+        {
+            image.IsPrimary = image.Id == imageId;
+        }
+
+        await _context.SaveChangesAsync();
+    }
 }
 

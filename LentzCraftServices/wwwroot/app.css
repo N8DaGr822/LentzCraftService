@@ -827,6 +827,91 @@ h1, h2, h3, h4, h5, h6 {
     min-width: 180px;
 }
 
+/* Image Management */
+.image-management-section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.image-management-section h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+}
+
+.image-upload-area {
+    margin-bottom: 2rem;
+}
+
+.image-upload-area label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.upload-status {
+    color: var(--accent-color);
+    font-style: italic;
+    margin-top: 0.5rem;
+}
+
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.image-card {
+    background: var(--background-white);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    transition: var(--transition);
+}
+
+.image-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.image-card.primary {
+    border-color: var(--accent-color);
+}
+
+.image-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+
+.primary-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--accent-color);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.image-actions {
+    padding: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.hint-text {
+    color: var(--text-light);
+    font-style: italic;
+    margin-top: 1.5rem;
+}
+
 /* Login Page */
 .login-page {
     display: flex;

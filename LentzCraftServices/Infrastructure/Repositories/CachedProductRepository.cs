@@ -149,6 +149,25 @@ public class CachedProductRepository : IProductRepository
         return _innerRepository.ExistsAsync(id);
     }
 
+    public async Task<ProductImage> AddImageAsync(ProductImage image)
+    {
+        var result = await _innerRepository.AddImageAsync(image);
+        InvalidateCache();
+        return result;
+    }
+
+    public async Task DeleteImageAsync(int imageId)
+    {
+        await _innerRepository.DeleteImageAsync(imageId);
+        InvalidateCache();
+    }
+
+    public async Task SetPrimaryImageAsync(int productId, int imageId)
+    {
+        await _innerRepository.SetPrimaryImageAsync(productId, imageId);
+        InvalidateCache();
+    }
+
     private void InvalidateCache()
     {
         // Invalidate all product-related cache entries

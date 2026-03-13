@@ -3,6 +3,7 @@
 @attribute [Authorize]
 @inject IProductRepository ProductRepository
 @inject NavigationManager Navigation
+@inject IWebHostEnvironment Environment
 @rendermode InteractiveServer
 
 <PageTitle>@(IsNew ? "Add Product" : "Edit Product") - Admin</PageTitle>
@@ -10,21 +11,26 @@
 <div class="admin-page">
     <div class="container">
         <h1 class="page-title">@(IsNew ? "Add New Product" : "Edit Product")</h1>
-        
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-error">@errorMessage</div>
+        }
+
         <EditForm Model="@productModel" OnValidSubmit="@HandleSubmit" class="product-form">
             <DataAnnotationsValidator />
-            
+
             <div class="form-group">
                 <label for="name">Name *</label>
                 <InputText id="name" @bind-Value="productModel.Name" class="form-control" />
                 <ValidationMessage For="@(() => productModel.Name)" />
             </div>
-            
+
             <div class="form-group">
                 <label for="description">Description</label>
                 <InputTextArea id="description" @bind-Value="productModel.Description" class="form-control" rows="5" />
             </div>
-            
+
             <div class="form-row">
                 <div class="form-group">
                     <label for="category">Category *</label>
@@ -34,7 +40,7 @@
                         <option value="@ProductCategory.Crochet">Crochet</option>
                     </InputSelect>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="status">Status *</label>
                     <InputSelect id="status" @bind-Value="productModel.Status" class="form-control">
@@ -44,47 +50,99 @@
                     </InputSelect>
                 </div>
             </div>
-            
+
             <div class="form-row">
                 <div class="form-group">
                     <label for="quantity">Quantity *</label>
                     <InputNumber id="quantity" @bind-Value="productModel.Quantity" class="form-control" />
                     <ValidationMessage For="@(() => productModel.Quantity)" />
                 </div>
-                
+
                 <div class="form-group">
                     <label for="price">Price</label>
                     <InputNumber id="price" @bind-Value="productModel.Price" class="form-control" />
                 </div>
             </div>
-            
+
             <div class="form-group">
                 <label>
                     <InputCheckbox @bind-Value="productModel.IsPublic" />
                     Make this product publicly visible
                 </label>
             </div>
-            
+
             <div class="form-actions">
-                <button type="submit" class="btn-primary">@(IsNew ? "Create Product" : "Update Product")</button>
+                <button type="submit" class="btn-primary" disabled="@isSaving">
+                    @(isSaving ? "Saving..." : (IsNew ? "Create Product" : "Update Product"))
+                </button>
                 <a href="/admin/products" class="btn-secondary">Cancel</a>
             </div>
         </EditForm>
+
+        @if (!IsNew)
+        {
+            <div class="image-management-section">
+                <h2>Product Images</h2>
+
+                <div class="image-upload-area">
+                    <label for="imageUpload">Upload Images</label>
+                    <InputFile id="imageUpload" OnChange="@HandleImageUpload" multiple accept="image/*" class="form-control" />
+                    @if (isUploading)
+                    {
+                        <p class="upload-status">Uploading...</p>
+                    }
+                </div>
+
+                @if (existingImages.Any())
+                {
+                    <div class="image-grid">
+                        @foreach (var image in existingImages)
+                        {
+                            <div class="image-card @(image.IsPrimary ? "primary" : "")">
+                                <img src="@image.ImageUrl.Replace(" ", "%20")" alt="Product image" />
+                                @if (image.IsPrimary)
+                                {
+                                    <span class="primary-badge">Primary</span>
+                                }
+                                <div class="image-actions">
+                                    @if (!image.IsPrimary)
+                                    {
+                                        <button @onclick="() => SetPrimary(image.Id)" class="btn-small">Set Primary</button>
+                                    }
+                                    <button @onclick="() => DeleteImage(image.Id, image.ImageUrl)" class="btn-small btn-danger">Delete</button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p>No images yet. Upload some above.</p>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="hint-text">Save the product first, then you can upload images.</p>
+        }
     </div>
 </div>
 
 @code {
     [Parameter] public int ProductId { get; set; }
-    
+
     private ProductModel productModel = new();
     private bool IsNew => ProductId == 0;
+    private bool isSaving = false;
+    private bool isUploading = false;
+    private string? errorMessage;
+    private List<ProductImage> existingImages = new();
 
     protected override async Task OnInitializedAsync()
     {
         if (!IsNew)
         {
-            // Use AsNoTracking to avoid tracking conflicts when updating
-            var product = await ProductRepository.GetByIdAsync(ProductId, includeImages: false, asNoTracking: true);
+            var product = await ProductRepository.GetByIdAsync(ProductId, includeImages: true, asNoTracking: true);
             if (product != null)
             {
                 productModel = new ProductModel
@@ -98,69 +156,170 @@
                     Price = product.Price,
                     IsPublic = product.IsPublic
                 };
+                existingImages = product.Images?.OrderByDescending(i => i.IsPrimary).ToList() ?? new();
             }
         }
     }
 
     private async Task HandleSubmit()
     {
-        if (IsNew)
+        isSaving = true;
+        errorMessage = null;
+
+        try
         {
-            var product = new Product
+            if (IsNew)
             {
-                Id = productModel.Id,
-                Name = productModel.Name,
-                Description = productModel.Description,
-                Category = productModel.Category,
-                Status = productModel.Status,
-                Quantity = productModel.Quantity,
-                Price = productModel.Price,
-                IsPublic = productModel.IsPublic,
-                CreatedDate = DateTime.UtcNow
-            };
-            await ProductRepository.AddAsync(product);
+                var product = new Product
+                {
+                    Name = productModel.Name,
+                    Description = productModel.Description,
+                    Category = productModel.Category,
+                    Status = productModel.Status,
+                    Quantity = productModel.Quantity,
+                    Price = productModel.Price,
+                    IsPublic = productModel.IsPublic,
+                    CreatedDate = DateTime.UtcNow
+                };
+                var created = await ProductRepository.AddAsync(product);
+                // Redirect to edit page so user can add images
+                Navigation.NavigateTo($"/admin/products/{created.Id}");
+            }
+            else
+            {
+                var product = new Product
+                {
+                    Id = productModel.Id,
+                    Name = productModel.Name,
+                    Description = productModel.Description,
+                    Category = productModel.Category,
+                    Status = productModel.Status,
+                    Quantity = productModel.Quantity,
+                    Price = productModel.Price,
+                    IsPublic = productModel.IsPublic
+                };
+                await ProductRepository.UpdateAsync(product);
+                Navigation.NavigateTo("/admin/products");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            // For updates, UpdateAsync will load the existing entity and preserve CreatedDate
-            var product = new Product
-            {
-                Id = productModel.Id,
-                Name = productModel.Name,
-                Description = productModel.Description,
-                Category = productModel.Category,
-                Status = productModel.Status,
-                Quantity = productModel.Quantity,
-                Price = productModel.Price,
-                IsPublic = productModel.IsPublic
-            };
-            await ProductRepository.UpdateAsync(product);
+            errorMessage = $"Error saving product: {ex.Message}";
         }
-        
-        Navigation.NavigateTo("/admin/products");
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task HandleImageUpload(InputFileChangeEventArgs e)
+    {
+        isUploading = true;
+        errorMessage = null;
+
+        try
+        {
+            var categoryFolder = productModel.Category.ToString().ToLower();
+            var uploadPath = Path.Combine(Environment.WebRootPath, "images", categoryFolder);
+            Directory.CreateDirectory(uploadPath);
+
+            foreach (var file in e.GetMultipleFiles(10))
+            {
+                if (file.Size > 10 * 1024 * 1024) // 10MB limit
+                {
+                    errorMessage = $"File '{file.Name}' exceeds the 10MB size limit.";
+                    continue;
+                }
+
+                // Sanitize filename: keep extension, replace spaces/special chars
+                var extension = Path.GetExtension(file.Name);
+                var baseName = Path.GetFileNameWithoutExtension(file.Name);
+                var safeName = System.Text.RegularExpressions.Regex.Replace(baseName, @"[^a-zA-Z0-9_-]", "");
+                if (string.IsNullOrEmpty(safeName)) safeName = "image";
+
+                // Add timestamp to avoid collisions
+                var fileName = $"{safeName}_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
+                var filePath = Path.Combine(uploadPath, fileName);
+
+                await using var stream = new FileStream(filePath, FileMode.Create);
+                await file.OpenReadStream(10 * 1024 * 1024).CopyToAsync(stream);
+
+                var imageUrl = $"/images/{categoryFolder}/{fileName}";
+                var isPrimary = !existingImages.Any(); // First image is primary by default
+
+                var productImage = new ProductImage
+                {
+                    ProductId = ProductId,
+                    ImageUrl = imageUrl,
+                    IsPrimary = isPrimary
+                };
+
+                var saved = await ProductRepository.AddImageAsync(productImage);
+                existingImages.Add(saved);
+            }
+
+            // Re-sort so primary is first
+            existingImages = existingImages.OrderByDescending(i => i.IsPrimary).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error uploading image: {ex.Message}";
+        }
+        finally
+        {
+            isUploading = false;
+        }
+    }
+
+    private async Task SetPrimary(int imageId)
+    {
+        await ProductRepository.SetPrimaryImageAsync(ProductId, imageId);
+        foreach (var img in existingImages)
+        {
+            img.IsPrimary = img.Id == imageId;
+        }
+        existingImages = existingImages.OrderByDescending(i => i.IsPrimary).ToList();
+    }
+
+    private async Task DeleteImage(int imageId, string imageUrl)
+    {
+        await ProductRepository.DeleteImageAsync(imageId);
+        existingImages.RemoveAll(i => i.Id == imageId);
+
+        // Delete file from disk
+        var filePath = Path.Combine(Environment.WebRootPath, imageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+
+        // If we deleted the primary, make the first remaining image primary
+        if (!existingImages.Any(i => i.IsPrimary) && existingImages.Any())
+        {
+            await SetPrimary(existingImages.First().Id);
+        }
     }
 
     public class ProductModel
     {
         public int Id { get; set; }
-        
+
         [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Name is required")]
         [System.ComponentModel.DataAnnotations.StringLength(200)]
         public string Name { get; set; } = "";
-        
+
         [System.ComponentModel.DataAnnotations.StringLength(2000)]
         public string Description { get; set; } = "";
-        
+
         public ProductCategory Category { get; set; } = ProductCategory.Woodworking;
-        
+
         public ProductStatus Status { get; set; } = ProductStatus.Available;
-        
+
         [System.ComponentModel.DataAnnotations.Range(0, int.MaxValue, ErrorMessage = "Quantity must be 0 or greater")]
         public int Quantity { get; set; } = 0;
-        
+
         public decimal? Price { get; set; }
-        
+
         public bool IsPublic { get; set; } = true;
     }
 }
-
