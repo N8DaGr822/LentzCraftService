@@ -18,18 +18,20 @@
                 <label>Category:</label>
                 <select value="@selectedCategory" @onchange="OnCategoryChanged" class="filter-select">
                     <option value="">All Categories</option>
-                    <option value="Woodworking">Woodworking</option>
-                    <option value="Engraving">Engraving</option>
-                    <option value="Crochet">Crochet</option>
+                    @foreach (var cat in Enum.GetValues<ProductCategory>())
+                    {
+                        <option value="@cat.ToString()">@cat.GetDisplayName()</option>
+                    }
                 </select>
             </div>
             <div class="filter-group">
                 <label>Status:</label>
                 <select value="@selectedStatus" @onchange="OnStatusChanged" class="filter-select">
                     <option value="">All Status</option>
-                    <option value="Available">Available</option>
-                    <option value="Sold">Sold</option>
-                    <option value="DisplayOnly">Display Only</option>
+                    @foreach (var status in Enum.GetValues<ProductStatus>())
+                    {
+                        <option value="@status.ToString()">@status.GetDisplayName()</option>
+                    }
                 </select>
             </div>
         </div>
@@ -65,8 +67,8 @@
                         }
                         <div class="product-info">
                             <h3 class="product-name">@product.Name</h3>
-                            <p class="product-category">@product.Category</p>
-                            <p class="product-status">@product.Status</p>
+                            <p class="product-category">@product.Category.GetDisplayName()</p>
+                            <p class="product-status">@product.Status.GetDisplayName()</p>
                             @if (product.Price.HasValue)
                             {
                                 <p class="product-price">$@product.Price.Value.ToString("F2")</p>

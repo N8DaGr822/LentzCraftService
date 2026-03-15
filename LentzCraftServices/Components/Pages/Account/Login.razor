@@ -24,7 +24,12 @@
                 <input id="password" name="password" type="password" class="form-control" required autocomplete="current-password" />
             </div>
             
-            <input type="hidden" name="rememberMe" value="false" />
+            <div class="form-group remember-me-group">
+                <label class="remember-me-label">
+                    <input type="checkbox" name="rememberMe" value="true" checked />
+                    Remember Me
+                </label>
+            </div>
             <input type="hidden" name="returnUrl" value="/admin" />
             
             <button type="submit" class="btn-primary">Login</button>

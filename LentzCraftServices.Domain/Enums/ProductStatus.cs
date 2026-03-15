@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace LentzCraftServices.Domain.Enums;
 
 /// <summary>
@@ -6,8 +8,18 @@ namespace LentzCraftServices.Domain.Enums;
 /// </summary>
 public enum ProductStatus
 {
-    Available = 1,      // Item is available for purchase
-    Sold = 2,          // Item has been sold
-    DisplayOnly = 3    // Item is for display in portfolio only
-}
+    [Description("Available")]
+    Available = 1,
 
+    [Description("Sold")]
+    Sold = 2,
+
+    [Description("Display Only")]
+    DisplayOnly = 3,
+
+    [Description("Custom Order Only")]
+    CustomOrderOnly = 4,
+
+    [Description("Coming Soon")]
+    ComingSoon = 5
+}

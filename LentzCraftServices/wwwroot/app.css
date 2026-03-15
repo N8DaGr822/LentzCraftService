@@ -670,6 +670,24 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 500;
 }
 
+.product-custom-order-notice {
+    padding: 1rem;
+    background: #D1FAE5;
+    border-left: 4px solid #10B981;
+    border-radius: 4px;
+    color: #065F46;
+    font-weight: 500;
+}
+
+.product-coming-soon-notice {
+    padding: 1rem;
+    background: #FEF3C7;
+    border-left: 4px solid #F59E0B;
+    border-radius: 4px;
+    color: #92400E;
+    font-weight: 500;
+}
+
 /* Forms */
 .form-group {
     margin-bottom: 1.5rem;
@@ -916,6 +934,31 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-light);
     font-style: italic;
     margin-top: 1.5rem;
+}
+
+/* Remember Me */
+.remember-me-group {
+    margin-top: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.remember-me-label {
+    display: flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+    cursor: pointer;
+    color: var(--text-medium) !important;
+}
+
+.remember-me-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--accent-color);
 }
 
 /* Login Page */

@@ -14,18 +14,13 @@
                 <h3>Total Items</h3>
                 <p class="stat-value">@totalItems</p>
             </div>
-            <div class="stat-card">
-                <h3>Available</h3>
-                <p class="stat-value">@availableItems</p>
-            </div>
-            <div class="stat-card">
-                <h3>Sold</h3>
-                <p class="stat-value">@soldItems</p>
-            </div>
-            <div class="stat-card">
-                <h3>Display Only</h3>
-                <p class="stat-value">@displayOnlyItems</p>
-            </div>
+            @foreach (var kvp in statusCounts)
+            {
+                <div class="stat-card">
+                    <h3>@kvp.Key.GetDisplayName()</h3>
+                    <p class="stat-value">@kvp.Value</p>
+                </div>
+            }
         </div>
         
         <div class="admin-actions">
@@ -36,17 +31,15 @@
 
 @code {
     private int totalItems = 0;
-    private int availableItems = 0;
-    private int soldItems = 0;
-    private int displayOnlyItems = 0;
+    private Dictionary<ProductStatus, int> statusCounts = new();
 
     protected override async Task OnInitializedAsync()
     {
         var allProducts = await ProductRepository.GetAllAsync();
-        totalItems = allProducts.Count();
-        availableItems = allProducts.Count(p => p.Status == ProductStatus.Available);
-        soldItems = allProducts.Count(p => p.Status == ProductStatus.Sold);
-        displayOnlyItems = allProducts.Count(p => p.Status == ProductStatus.DisplayOnly);
+        var productList = allProducts.ToList();
+        totalItems = productList.Count;
+        statusCounts = Enum.GetValues<ProductStatus>()
+            .ToDictionary(s => s, s => productList.Count(p => p.Status == s));
     }
 }
 

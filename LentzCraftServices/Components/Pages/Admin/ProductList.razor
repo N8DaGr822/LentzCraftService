@@ -17,15 +17,17 @@
             <input type="text" @bind="searchTerm" @bind:event="oninput" @bind:after="LoadProducts" placeholder="Search products..." class="search-input" />
             <select @bind="filterCategory" @bind:after="LoadProducts" class="filter-select">
                 <option value="">All Categories</option>
-                <option value="Woodworking">Woodworking</option>
-                <option value="Engraving">Engraving</option>
-                <option value="Crochet">Crochet</option>
+                @foreach (var cat in Enum.GetValues<ProductCategory>())
+                {
+                    <option value="@cat.ToString()">@cat.GetDisplayName()</option>
+                }
             </select>
             <select @bind="filterStatus" @bind:after="LoadProducts" class="filter-select">
                 <option value="">All Status</option>
-                <option value="Available">Available</option>
-                <option value="Sold">Sold</option>
-                <option value="DisplayOnly">Display Only</option>
+                @foreach (var status in Enum.GetValues<ProductStatus>())
+                {
+                    <option value="@status.ToString()">@status.GetDisplayName()</option>
+                }
             </select>
         </div>
 
@@ -48,8 +50,8 @@
                     {
                         <tr>
                             <td>@product.Name</td>
-                            <td>@product.Category</td>
-                            <td>@product.Status</td>
+                            <td>@product.Category.GetDisplayName()</td>
+                            <td>@product.Status.GetDisplayName()</td>
                             <td>@(product.Price?.ToString("C") ?? "N/A")</td>
                             <td>@product.Quantity</td>
                             <td>@(product.IsPublic ? "Yes" : "No")</td>

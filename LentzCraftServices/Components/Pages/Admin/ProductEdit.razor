@@ -35,18 +35,20 @@
                 <div class="form-group">
                     <label for="category">Category *</label>
                     <InputSelect id="category" @bind-Value="productModel.Category" class="form-control">
-                        <option value="@ProductCategory.Woodworking">Woodworking</option>
-                        <option value="@ProductCategory.Engraving">Engraving</option>
-                        <option value="@ProductCategory.Crochet">Crochet</option>
+                        @foreach (var cat in Enum.GetValues<ProductCategory>())
+                        {
+                            <option value="@cat">@cat.GetDisplayName()</option>
+                        }
                     </InputSelect>
                 </div>
 
                 <div class="form-group">
                     <label for="status">Status *</label>
                     <InputSelect id="status" @bind-Value="productModel.Status" class="form-control">
-                        <option value="@ProductStatus.Available">Available</option>
-                        <option value="@ProductStatus.Sold">Sold</option>
-                        <option value="@ProductStatus.DisplayOnly">Display Only</option>
+                        @foreach (var status in Enum.GetValues<ProductStatus>())
+                        {
+                            <option value="@status">@status.GetDisplayName()</option>
+                        }
                     </InputSelect>
                 </div>
             </div>

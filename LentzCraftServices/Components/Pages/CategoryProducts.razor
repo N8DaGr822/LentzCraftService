@@ -32,7 +32,7 @@
                         }
                         <div class="product-info">
                             <h3 class="product-name">@product.Name</h3>
-                            <p class="product-status">@product.Status</p>
+                            <p class="product-status">@product.Status.GetDisplayName()</p>
                             @if (product.Price.HasValue)
                             {
                                 <p class="product-price">$@product.Price.Value.ToString("F2")</p>
@@ -54,17 +54,19 @@
     [Parameter] public string CategoryName { get; set; } = "";
     
     private IEnumerable<Product>? products;
-    private string CategoryDisplayName => CategoryName switch
+    private string CategoryDisplayName
     {
-        "woodworking" => "Woodworking",
-        "engraving" => "Engraving",
-        "crochet" => "Crochet",
-        _ => "Products"
-    };
+        get
+        {
+            if (Enum.TryParse<ProductCategory>(CategoryName, true, out var cat))
+                return cat.GetDisplayName();
+            return "Products";
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        if (Enum.TryParse<ProductCategory>(CategoryDisplayName, true, out var category))
+        if (Enum.TryParse<ProductCategory>(CategoryName, true, out var category))
         {
             var allProducts = await ProductRepository.GetByCategoryAsync(category, includeImages: true);
             products = allProducts.Where(p => p.IsPublic).OrderByDescending(p => p.CreatedDate).ToList();

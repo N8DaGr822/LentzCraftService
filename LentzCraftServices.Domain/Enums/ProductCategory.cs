@@ -1,3 +1,5 @@
+using System.ComponentModel;
+
 namespace LentzCraftServices.Domain.Enums;
 
 /// <summary>
@@ -6,8 +8,12 @@ namespace LentzCraftServices.Domain.Enums;
 /// </summary>
 public enum ProductCategory
 {
+    [Description("Woodworking")]
     Woodworking = 1,
+
+    [Description("Engraving")]
     Engraving = 2,
+
+    [Description("Crochet")]
     Crochet = 3
 }
-
