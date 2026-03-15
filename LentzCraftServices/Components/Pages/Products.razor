@@ -5,6 +5,7 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
+@attribute [StreamRendering]
 
 <PageTitle>Products - Lentz Crafts & Services</PageTitle>
 
@@ -33,7 +34,14 @@
             </div>
         </div>
 
-        @if (products != null && products.Any())
+        @if (products == null)
+        {
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p>Loading products...</p>
+            </div>
+        }
+        else if (products.Any())
         {
             <div class="product-grid">
                 @foreach (var product in products)
@@ -84,25 +92,13 @@
     private string selectedCategory = "";
     private string selectedStatus = "";
     private bool _shouldScrollToTop = false;
+    private bool _isInitialized = false;
 
     protected override async Task OnInitializedAsync()
     {
-        // Read category from query parameter or route parameter
-        if (!string.IsNullOrEmpty(Category))
-        {
-            selectedCategory = Category;
-        }
-        else
-        {
-            // Try to get from query string
-            var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
-            if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("category", out var categoryValues))
-            {
-                selectedCategory = categoryValues.FirstOrDefault() ?? "";
-            }
-        }
-        
+        ReadCategoryParameter();
         await LoadProducts();
+        _isInitialized = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -116,7 +112,15 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        // Re-read category when parameters change (e.g., query string changes)
+        if (!_isInitialized) return;
+
+        ReadCategoryParameter();
+        await LoadProducts();
+        _shouldScrollToTop = true;
+    }
+
+    private void ReadCategoryParameter()
+    {
         if (!string.IsNullOrEmpty(Category))
         {
             selectedCategory = Category;
@@ -124,15 +128,11 @@
         else
         {
             var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
-            if (Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query).TryGetValue("category", out var categoryValues))
+            if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("category", out var categoryValues))
             {
                 selectedCategory = categoryValues.FirstOrDefault() ?? "";
             }
         }
-        
-        await LoadProducts();
-        // Flag scroll-to-top for OnAfterRenderAsync (JS interop not available here during prerender)
-        _shouldScrollToTop = true;
     }
 
     private async Task LoadProducts()

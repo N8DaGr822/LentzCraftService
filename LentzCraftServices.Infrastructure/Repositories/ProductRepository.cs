@@ -49,8 +49,8 @@ public class ProductRepository : IProductRepository
 
     public async Task<IEnumerable<Product>> GetPublicProductsAsync(bool includeImages = false)
     {
-        var query = _context.Products.Where(p => p.IsPublic).AsQueryable();
-        
+        var query = _context.Products.AsNoTracking().Where(p => p.IsPublic).AsQueryable();
+
         if (includeImages)
         {
             query = query.Include(p => p.Images);

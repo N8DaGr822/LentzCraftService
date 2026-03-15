@@ -29,17 +29,20 @@ else
                 <div class="product-images">
                     @if (product.Images != null && product.Images.Any())
                     {
-                        var primaryImage = product.Images.FirstOrDefault(i => i.IsPrimary) ?? product.Images.First();
-                        var primaryImageUrl = primaryImage.ImageUrl?.Replace(" ", "%20") ?? "";
-                        <img src="@primaryImageUrl" alt="@product.Name" class="product-main-image" loading="eager" />
-                        
+                        <img src="@selectedImageUrl" alt="@product.Name" class="product-main-image" loading="eager" />
+
                         @if (product.Images.Count > 1)
                         {
                             <div class="product-thumbnails">
                                 @foreach (var image in product.Images)
                                 {
                                     var imageUrl = image.ImageUrl?.Replace(" ", "%20") ?? "";
-                                    <img src="@imageUrl" alt="@product.Name" class="product-thumbnail" loading="lazy" />
+                                    var isSelected = imageUrl == selectedImageUrl;
+                                    <img src="@imageUrl"
+                                         alt="@product.Name"
+                                         class="product-thumbnail @(isSelected ? "active" : "")"
+                                         loading="lazy"
+                                         @onclick="() => SelectImage(imageUrl)" />
                                 }
                             </div>
                         }
@@ -94,10 +97,22 @@ else
 @code {
     [Parameter] public int ProductId { get; set; }
     private Product? product;
+    private string selectedImageUrl = "";
 
     protected override async Task OnInitializedAsync()
     {
         product = await ProductRepository.GetByIdAsync(ProductId, includeImages: true);
+
+        if (product?.Images != null && product.Images.Any())
+        {
+            var primaryImage = product.Images.FirstOrDefault(i => i.IsPrimary) ?? product.Images.First();
+            selectedImageUrl = primaryImage.ImageUrl?.Replace(" ", "%20") ?? "";
+        }
+    }
+
+    private void SelectImage(string imageUrl)
+    {
+        selectedImageUrl = imageUrl;
     }
 }
 
