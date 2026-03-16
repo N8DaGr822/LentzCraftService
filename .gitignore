@@ -197,3 +197,12 @@ node_modules/
 # Rider
 .idea/
 *.sln.iml
+
+# Publish output
+publish/
+
+# Claude Code
+.claude/
+
+# Stray nul file (Windows artifact)
+nul

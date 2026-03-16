@@ -139,19 +139,20 @@
 
     private async Task LoadProducts()
     {
-        var allProducts = await ProductRepository.GetPublicProductsAsync(includeImages: true);
-        
+        ProductCategory? categoryFilter = null;
+        ProductStatus? statusFilter = null;
+
         if (!string.IsNullOrEmpty(selectedCategory) && Enum.TryParse<ProductCategory>(selectedCategory, out var category))
         {
-            allProducts = allProducts.Where(p => p.Category == category);
+            categoryFilter = category;
         }
-        
+
         if (!string.IsNullOrEmpty(selectedStatus) && Enum.TryParse<ProductStatus>(selectedStatus, out var status))
         {
-            allProducts = allProducts.Where(p => p.Status == status);
+            statusFilter = status;
         }
-        
-        products = allProducts.OrderByDescending(p => p.CreatedDate).ToList();
+
+        products = await ProductRepository.GetPublicProductsAsync(categoryFilter, statusFilter, includeImages: true);
     }
 
     private async Task OnCategoryChanged(ChangeEventArgs e)
@@ -163,11 +164,6 @@
     private async Task OnStatusChanged(ChangeEventArgs e)
     {
         selectedStatus = e.Value?.ToString() ?? "";
-        await LoadProducts();
-    }
-    
-    private async Task OnSearchChanged(ChangeEventArgs e)
-    {
         await LoadProducts();
     }
 }

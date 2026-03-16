@@ -29,7 +29,9 @@ public class Product
     public bool IsPublic { get; set; }
     
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-    
+
+    public DateTime? ModifiedDate { get; set; }
+
     // Navigation property for related images
     public virtual ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
 }

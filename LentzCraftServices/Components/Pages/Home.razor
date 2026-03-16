@@ -46,7 +46,7 @@
             <div class="service-card">
                 <div class="service-image">
                     <div class="service-image-placeholder">
-                        <img src="/images/engraving.png" alt="Handyman Services" class="service-image-img" />                    </div>
+                        <img src="/images/engraving.png" alt="Woodworking and Engraving Services" class="service-image-img" />                    </div>
                 </div>
                 <div class="service-content">
                     <h3 class="service-title">Woodworking & Engraving</h3>
@@ -62,7 +62,7 @@
             <div class="service-card">
                 <div class="service-image">
                     <div class="service-image-placeholder">
-                        <img src="/images/crochet.png" alt="Handyman Services" class="service-image-img" />                    </div>
+                        <img src="/images/crochet.png" alt="Crochet and Handmade Goods" class="service-image-img" />                    </div>
                 </div>
                 <div class="service-content">
                     <h3 class="service-title">Crochet & Handmade Goods</h3>
@@ -107,23 +107,26 @@
 <div class="work-gallery-section">
     <div class="container">
         <h2 class="section-heading section-heading-light">Our Work: Crafted with Care</h2>
-        <div class="gallery-grid">
-            <div class="gallery-item">
-                <div class="gallery-image-placeholder">
-                    <img src="/images/crochet/DaisyTowel.jpg" alt="Our Work - Bookshelf" class="gallery-image" />
-                </div>
+        @if (galleryProducts != null && galleryProducts.Any())
+        {
+            <div class="gallery-grid">
+                @foreach (var product in galleryProducts)
+                {
+                    var image = product.Images?.FirstOrDefault(i => i.IsPrimary) ?? product.Images?.FirstOrDefault();
+                    if (image != null)
+                    {
+                        var imageUrl = image.ImageUrl?.Replace(" ", "%20") ?? "";
+                        <div class="gallery-item">
+                            <a href="/products/@product.Id">
+                                <div class="gallery-image-placeholder">
+                                    <img src="@imageUrl" alt="@product.Name" class="gallery-image" loading="lazy" />
+                                </div>
+                            </a>
+                        </div>
+                    }
+                }
             </div>
-            <div class="gallery-item">
-                <div class="gallery-image-placeholder">
-                    <img src="/images/woodworking/EngravedBoxes.jpg" alt="Our Work - Engraved Cutting Board" class="gallery-image" />
-                </div>
-            </div>
-            <div class="gallery-item">
-                <div class="gallery-image-placeholder">
-                    <img src="/images/crochet/RippleBlanket.jpg" alt="Our Work - Crochet Items" class="gallery-image" />
-                </div>
-            </div>
-        </div>
+        }
         <div class="gallery-cta">
             <a href="/products" class="btn-gallery">View Gallery</a>
         </div>
@@ -138,3 +141,16 @@
         <a href="/contact" class="btn-cta">Get a Free Quote</a>
     </div>
 </div>
+
+@code {
+    private List<Product>? galleryProducts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var products = await ProductRepository.GetPublicProductsAsync(includeImages: true);
+        galleryProducts = products
+            .Where(p => p.Images != null && p.Images.Any())
+            .Take(3)
+            .ToList();
+    }
+}

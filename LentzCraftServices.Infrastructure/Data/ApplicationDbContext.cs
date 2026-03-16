@@ -35,6 +35,7 @@ public class ApplicationDbContext : IdentityDbContext
             entity.Property(e => e.Price).HasPrecision(18, 2);
             entity.Property(e => e.IsPublic).IsRequired();
             entity.Property(e => e.CreatedDate).IsRequired();
+            entity.Property(e => e.ModifiedDate);
 
             // Performance indexes
             entity.HasIndex(e => e.IsPublic);

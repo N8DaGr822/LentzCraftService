@@ -4,11 +4,13 @@ using LentzCraftServices.Infrastructure.Data;
 using LentzCraftServices.Infrastructure.Repositories;
 using LentzCraftServices.Infrastructure.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Serilog;
 using System.Security.Claims;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,7 +75,7 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Account/Login";
     options.LogoutPath = "/Account/Logout";
     options.AccessDeniedPath = "/Account/AccessDenied";
-    options.ExpireTimeSpan = TimeSpan.FromDays(30);
+    options.ExpireTimeSpan = TimeSpan.FromDays(7);
     options.SlidingExpiration = true;
     
     // Security hardening
@@ -84,8 +86,31 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
 });
 
-// Rate limiting is handled by Identity's lockout feature
-// Additional rate limiting can be added via middleware if needed
+// Configure rate limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Rate limit for login attempts (by IP)
+    options.AddPolicy("login", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(5)
+            }));
+
+    // Rate limit for contact form submissions (by IP)
+    options.AddPolicy("contact", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(15)
+            }));
+});
 
 // Add health checks
 builder.Services.AddHealthChecks()
@@ -167,13 +192,13 @@ app.Use(async (context, next) =>
         context.Response.Headers.Append("X-Frame-Options", "DENY");
         context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
         context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
-        context.Response.Headers.Append("Content-Security-Policy", 
+        context.Response.Headers.Append("Content-Security-Policy",
             "default-src 'self'; " +
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+            "script-src 'self' 'unsafe-inline'; " +
             "style-src 'self' 'unsafe-inline'; " +
             "img-src 'self' data: https:; " +
             "font-src 'self' data:; " +
-            "connect-src 'self';");
+            "connect-src 'self' wss:;");
     }
     await next();
 });
@@ -187,8 +212,8 @@ var staticFileOptions = new StaticFileOptions
     {
         if (!app.Environment.IsDevelopment())
         {
-            // Cache static files for 1 year
-            ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=31536000");
+            // Cache static files for 30 days with must-revalidate
+            ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=2592000,must-revalidate");
         }
     }
 };
@@ -202,6 +227,7 @@ app.UseMiddleware<LentzCraftServices.Middleware.GlobalExceptionHandlerMiddleware
 // Enable authentication and authorization
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 // Health checks endpoint (restricted to authenticated users)
 app.MapHealthChecks("/health").RequireAuthorization();
@@ -251,8 +277,10 @@ app.MapGet("/sitemap.xml", async (
         // Product detail pages
         foreach (var product in products)
         {
+            var lastmod = (product.ModifiedDate ?? product.CreatedDate).ToString("yyyy-MM-dd");
             sitemap.AppendLine("  <url>");
             sitemap.AppendLine($"    <loc>{baseUrl}/products/{product.Id}</loc>");
+            sitemap.AppendLine($"    <lastmod>{lastmod}</lastmod>");
             sitemap.AppendLine("    <changefreq>monthly</changefreq>");
             sitemap.AppendLine("    <priority>0.7</priority>");
             sitemap.AppendLine("  </url>");
@@ -285,34 +313,35 @@ app.MapPost("/Account/LoginPost", async (
     var password = form["password"].ToString() ?? string.Empty;
     var rememberMe = form.ContainsKey("rememberMe") && bool.TryParse(form["rememberMe"].ToString(), out var rm) && rm;
     var returnUrl = form["returnUrl"].ToString() ?? "/admin";
-    
+
     // Sanitize returnUrl to prevent open redirect attacks
     if (!string.IsNullOrEmpty(returnUrl) && !returnUrl.StartsWith("/"))
     {
         returnUrl = "/admin";
     }
-    
+
     if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
     {
         return Results.Redirect($"/Account/Login?error={Uri.EscapeDataString("Email and password are required.")}");
     }
-    
+
     // Enable lockout on failure for security
     var result = await signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: true);
-    
+
     if (result.Succeeded)
     {
         return Results.Redirect(returnUrl);
     }
-    
+
     if (result.IsLockedOut)
     {
         return Results.Redirect($"/Account/Login?error={Uri.EscapeDataString("Account locked out due to multiple failed login attempts. Please try again later.")}");
     }
-    
+
     return Results.Redirect($"/Account/Login?error={Uri.EscapeDataString("Invalid login attempt. Please check your email and password.")}");
 })
-.AllowAnonymous();
+.AllowAnonymous()
+.RequireRateLimiting("login");
 
 app.Run();
 }

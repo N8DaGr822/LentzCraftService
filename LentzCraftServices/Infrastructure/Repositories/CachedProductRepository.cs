@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using LentzCraftServices.Domain.Entities;
 using LentzCraftServices.Domain.Enums;
 
@@ -8,6 +9,7 @@ namespace LentzCraftServices.Infrastructure.Repositories;
 /// <summary>
 /// Decorator pattern implementation for caching product repository results.
 /// Wraps the ProductRepository to add caching layer.
+/// Uses a CancellationTokenSource to invalidate all cache entries at once on mutations.
 /// </summary>
 public class CachedProductRepository : IProductRepository
 {
@@ -15,6 +17,7 @@ public class CachedProductRepository : IProductRepository
     private readonly IMemoryCache _cache;
     private readonly ILogger<CachedProductRepository> _logger;
     private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(5);
+    private CancellationTokenSource _cacheResetToken = new();
 
     public CachedProductRepository(
         IProductRepository innerRepository,
@@ -26,10 +29,17 @@ public class CachedProductRepository : IProductRepository
         _logger = logger;
     }
 
+    private MemoryCacheEntryOptions GetCacheOptions()
+    {
+        return new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(CacheExpiration)
+            .AddExpirationToken(new CancellationChangeToken(_cacheResetToken.Token));
+    }
+
     public async Task<Product?> GetByIdAsync(int id, bool includeImages = false, bool asNoTracking = false)
     {
         var cacheKey = $"product_{id}_{includeImages}_{asNoTracking}";
-        
+
         if (_cache.TryGetValue(cacheKey, out Product? cachedProduct))
         {
             _logger.LogDebug("Cache hit for product {ProductId}", id);
@@ -37,10 +47,10 @@ public class CachedProductRepository : IProductRepository
         }
 
         var product = await _innerRepository.GetByIdAsync(id, includeImages, asNoTracking);
-        
+
         if (product != null)
         {
-            _cache.Set(cacheKey, product, CacheExpiration);
+            _cache.Set(cacheKey, product, GetCacheOptions());
         }
 
         return product;
@@ -49,7 +59,7 @@ public class CachedProductRepository : IProductRepository
     public async Task<IEnumerable<Product>> GetAllAsync(bool includeImages = false)
     {
         var cacheKey = $"products_all_{includeImages}";
-        
+
         if (_cache.TryGetValue(cacheKey, out IEnumerable<Product>? cachedProducts))
         {
             _logger.LogDebug("Cache hit for all products");
@@ -58,16 +68,16 @@ public class CachedProductRepository : IProductRepository
 
         var products = await _innerRepository.GetAllAsync(includeImages);
         var productsList = products.ToList();
-        
-        _cache.Set(cacheKey, productsList, CacheExpiration);
-        
+
+        _cache.Set(cacheKey, productsList, GetCacheOptions());
+
         return productsList;
     }
 
     public async Task<IEnumerable<Product>> GetPublicProductsAsync(bool includeImages = false)
     {
         var cacheKey = $"products_public_{includeImages}";
-        
+
         if (_cache.TryGetValue(cacheKey, out IEnumerable<Product>? cachedProducts))
         {
             _logger.LogDebug("Cache hit for public products");
@@ -76,16 +86,35 @@ public class CachedProductRepository : IProductRepository
 
         var products = await _innerRepository.GetPublicProductsAsync(includeImages);
         var productsList = products.ToList();
-        
-        _cache.Set(cacheKey, productsList, CacheExpiration);
-        
+
+        _cache.Set(cacheKey, productsList, GetCacheOptions());
+
+        return productsList;
+    }
+
+    public async Task<IEnumerable<Product>> GetPublicProductsAsync(
+        ProductCategory? category, ProductStatus? status, bool includeImages = false)
+    {
+        var cacheKey = $"products_public_{category}_{status}_{includeImages}";
+
+        if (_cache.TryGetValue(cacheKey, out IEnumerable<Product>? cachedProducts))
+        {
+            _logger.LogDebug("Cache hit for filtered public products");
+            return cachedProducts ?? Enumerable.Empty<Product>();
+        }
+
+        var products = await _innerRepository.GetPublicProductsAsync(category, status, includeImages);
+        var productsList = products.ToList();
+
+        _cache.Set(cacheKey, productsList, GetCacheOptions());
+
         return productsList;
     }
 
     public async Task<IEnumerable<Product>> GetByCategoryAsync(ProductCategory category, bool includeImages = false)
     {
         var cacheKey = $"products_category_{category}_{includeImages}";
-        
+
         if (_cache.TryGetValue(cacheKey, out IEnumerable<Product>? cachedProducts))
         {
             _logger.LogDebug("Cache hit for category {Category}", category);
@@ -94,16 +123,16 @@ public class CachedProductRepository : IProductRepository
 
         var products = await _innerRepository.GetByCategoryAsync(category, includeImages);
         var productsList = products.ToList();
-        
-        _cache.Set(cacheKey, productsList, CacheExpiration);
-        
+
+        _cache.Set(cacheKey, productsList, GetCacheOptions());
+
         return productsList;
     }
 
     public async Task<IEnumerable<Product>> GetByStatusAsync(ProductStatus status, bool includeImages = false)
     {
         var cacheKey = $"products_status_{status}_{includeImages}";
-        
+
         if (_cache.TryGetValue(cacheKey, out IEnumerable<Product>? cachedProducts))
         {
             _logger.LogDebug("Cache hit for status {Status}", status);
@@ -112,9 +141,9 @@ public class CachedProductRepository : IProductRepository
 
         var products = await _innerRepository.GetByStatusAsync(status, includeImages);
         var productsList = products.ToList();
-        
-        _cache.Set(cacheKey, productsList, CacheExpiration);
-        
+
+        _cache.Set(cacheKey, productsList, GetCacheOptions());
+
         return productsList;
     }
 
@@ -170,10 +199,9 @@ public class CachedProductRepository : IProductRepository
 
     private void InvalidateCache()
     {
-        // Invalidate all product-related cache entries
-        // In a more sophisticated implementation, you could use cache tags or specific keys
-        _logger.LogDebug("Invalidating product cache");
-        // Note: MemoryCache doesn't support pattern-based invalidation
-        // For production, consider using Redis with tags or a more sophisticated caching solution
+        _logger.LogDebug("Invalidating all product cache entries");
+        _cacheResetToken.Cancel();
+        _cacheResetToken.Dispose();
+        _cacheResetToken = new CancellationTokenSource();
     }
 }

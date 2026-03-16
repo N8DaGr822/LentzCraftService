@@ -59,6 +59,29 @@ public class ProductRepository : IProductRepository
         return await query.OrderByDescending(p => p.CreatedDate).ToListAsync();
     }
 
+    public async Task<IEnumerable<Product>> GetPublicProductsAsync(
+        ProductCategory? category, ProductStatus? status, bool includeImages = false)
+    {
+        var query = _context.Products.AsNoTracking().Where(p => p.IsPublic);
+
+        if (category.HasValue)
+        {
+            query = query.Where(p => p.Category == category.Value);
+        }
+
+        if (status.HasValue)
+        {
+            query = query.Where(p => p.Status == status.Value);
+        }
+
+        if (includeImages)
+        {
+            query = query.Include(p => p.Images);
+        }
+
+        return await query.OrderByDescending(p => p.CreatedDate).ToListAsync();
+    }
+
     public async Task<IEnumerable<Product>> GetByCategoryAsync(ProductCategory category, bool includeImages = false)
     {
         var query = _context.Products.Where(p => p.Category == category).AsQueryable();
@@ -85,10 +108,10 @@ public class ProductRepository : IProductRepository
 
     public async Task<IEnumerable<Product>> SearchAsync(string searchTerm, bool includeImages = false)
     {
-        var term = searchTerm.ToLower();
+        var pattern = $"%{searchTerm}%";
         var query = _context.Products
-            .Where(p => p.Name.ToLower().Contains(term) || 
-                       p.Description.ToLower().Contains(term))
+            .Where(p => EF.Functions.Like(p.Name, pattern) ||
+                       EF.Functions.Like(p.Description, pattern))
             .AsQueryable();
         
         if (includeImages)
@@ -126,6 +149,7 @@ public class ProductRepository : IProductRepository
         existingProduct.Quantity = product.Quantity;
         existingProduct.Price = product.Price;
         existingProduct.IsPublic = product.IsPublic;
+        existingProduct.ModifiedDate = DateTime.UtcNow;
         
         await _context.SaveChangesAsync();
         return existingProduct;
