@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using LentzCraftServices.Domain.Enums
 @inject IProductRepository ProductRepository
 @rendermode InteractiveServer
 
@@ -46,7 +47,15 @@
             <div class="service-card">
                 <div class="service-image">
                     <div class="service-image-placeholder">
-                        <img src="/images/engraving.png" alt="Woodworking and Engraving Services" class="service-image-img" />                    </div>
+                        @if (woodworkingImage != null)
+                        {
+                            <img src="@woodworkingImage" alt="Woodworking and Engraving Services" class="service-image-img" />
+                        }
+                        else
+                        {
+                            <img src="/images/engraving.png" alt="Woodworking and Engraving Services" class="service-image-img" />
+                        }
+                    </div>
                 </div>
                 <div class="service-content">
                     <h3 class="service-title">Woodworking & Engraving</h3>
@@ -62,7 +71,15 @@
             <div class="service-card">
                 <div class="service-image">
                     <div class="service-image-placeholder">
-                        <img src="/images/crochet.png" alt="Crochet and Handmade Goods" class="service-image-img" />                    </div>
+                        @if (crochetImage != null)
+                        {
+                            <img src="@crochetImage" alt="Crochet and Handmade Goods" class="service-image-img" />
+                        }
+                        else
+                        {
+                            <img src="/images/crochet.png" alt="Crochet and Handmade Goods" class="service-image-img" />
+                        }
+                    </div>
                 </div>
                 <div class="service-content">
                     <h3 class="service-title">Crochet & Handmade Goods</h3>
@@ -144,13 +161,34 @@
 
 @code {
     private List<Product>? galleryProducts;
+    private string? woodworkingImage;
+    private string? crochetImage;
 
     protected override async Task OnInitializedAsync()
     {
         var products = await ProductRepository.GetPublicProductsAsync(includeImages: true);
-        galleryProducts = products
+        var productsWithImages = products
             .Where(p => p.Images != null && p.Images.Any())
-            .Take(3)
             .ToList();
+
+        // Service card images — pick the first product with an image from each category
+        woodworkingImage = GetPrimaryImageUrl(productsWithImages, ProductCategory.Woodworking)
+                        ?? GetPrimaryImageUrl(productsWithImages, ProductCategory.Engraving);
+
+        crochetImage = GetPrimaryImageUrl(productsWithImages, ProductCategory.Crochet);
+
+        // Gallery section — 3 most recent products with images
+        galleryProducts = productsWithImages.Take(3).ToList();
+    }
+
+    private string? GetPrimaryImageUrl(List<Product> products, ProductCategory category)
+    {
+        var product = products.FirstOrDefault(p => p.Category == category);
+        if (product == null) return null;
+
+        var image = product.Images?.FirstOrDefault(i => i.IsPrimary)
+                 ?? product.Images?.FirstOrDefault();
+
+        return image?.ImageUrl?.Replace(" ", "%20");
     }
 }
