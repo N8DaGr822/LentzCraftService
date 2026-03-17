@@ -162,27 +162,23 @@ using (var scope = app.Services.CreateScope())
             // If the database was originally created with EnsureCreated, the tables exist
             // but __EFMigrationsHistory doesn't. MigrateAsync would then try to run
             // InitialCreate which fails because tables already exist.
-            // Fix: detect this scenario and stamp InitialCreate as already applied.
+            // Fix: use raw SQL to detect and handle this — avoids EF API calls that
+            // themselves throw when __EFMigrationsHistory doesn't exist.
             try
             {
-                var applied = await context.Database.GetAppliedMigrationsAsync();
-                if (!applied.Any())
-                {
-                    // No migrations recorded — check if tables already exist
-                    var conn = context.Database.GetDbConnection();
-                    await conn.OpenAsync();
-                    using var cmd = conn.CreateCommand();
-                    cmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Products'";
-                    var result = await cmd.ExecuteScalarAsync();
-                    var tablesExist = result != null && Convert.ToInt32(result) > 0;
-
-                    if (tablesExist)
-                    {
-                        logger.LogWarning("Database has tables but no migration history — stamping InitialCreate as applied");
-                        await context.Database.ExecuteSqlRawAsync(
-                            "INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion]) VALUES ('20260310183128_InitialCreate', '9.0.0')");
-                    }
-                }
+                await context.Database.ExecuteSqlRawAsync(@"
+                    IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Products')
+                       AND NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '__EFMigrationsHistory')
+                    BEGIN
+                        CREATE TABLE [__EFMigrationsHistory] (
+                            [MigrationId] nvarchar(150) NOT NULL,
+                            [ProductVersion] nvarchar(32) NOT NULL,
+                            CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+                        );
+                        INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+                        VALUES ('20260310183128_InitialCreate', '9.0.0');
+                    END
+                ");
             }
             catch (Exception stampEx)
             {
