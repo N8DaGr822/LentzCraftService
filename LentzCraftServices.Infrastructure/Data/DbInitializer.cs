@@ -544,8 +544,47 @@ public static class DbInitializer
             },
         };
 
+        // Assign sequential DisplayOrder values to seeded products
+        for (int i = 0; i < products.Count; i++)
+        {
+            products[i].DisplayOrder = i + 1;
+        }
+
         await context.Products.AddRangeAsync(products);
         await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Detects products with duplicate DisplayOrder values and assigns sequential
+    /// order numbers. Fixes databases created before DisplayOrder was added (all 0s).
+    /// </summary>
+    public static async Task NormalizeDisplayOrderAsync(
+        ApplicationDbContext context,
+        ILogger? logger = null)
+    {
+        var products = await context.Products
+            .OrderBy(p => p.DisplayOrder)
+            .ThenByDescending(p => p.CreatedDate)
+            .ToListAsync();
+
+        if (products.Count == 0) return;
+
+        // Check if there are any duplicate DisplayOrder values
+        var hasDuplicates = products
+            .GroupBy(p => p.DisplayOrder)
+            .Any(g => g.Count() > 1);
+
+        if (!hasDuplicates) return;
+
+        logger?.LogInformation("Normalizing duplicate DisplayOrder values for {Count} products", products.Count);
+
+        for (int i = 0; i < products.Count; i++)
+        {
+            products[i].DisplayOrder = i + 1;
+        }
+
+        await context.SaveChangesAsync();
+        logger?.LogInformation("DisplayOrder values normalized successfully");
     }
 
     /// <summary>

@@ -82,30 +82,6 @@ public class ProductRepository : IProductRepository
         return await query.OrderBy(p => p.DisplayOrder).ThenByDescending(p => p.CreatedDate).ToListAsync();
     }
 
-    public async Task<IEnumerable<Product>> GetByCategoryAsync(ProductCategory category, bool includeImages = false)
-    {
-        var query = _context.Products.Where(p => p.Category == category).AsQueryable();
-        
-        if (includeImages)
-        {
-            query = query.Include(p => p.Images);
-        }
-
-        return await query.OrderBy(p => p.DisplayOrder).ThenByDescending(p => p.CreatedDate).ToListAsync();
-    }
-
-    public async Task<IEnumerable<Product>> GetByStatusAsync(ProductStatus status, bool includeImages = false)
-    {
-        var query = _context.Products.Where(p => p.Status == status).AsQueryable();
-        
-        if (includeImages)
-        {
-            query = query.Include(p => p.Images);
-        }
-
-        return await query.OrderBy(p => p.DisplayOrder).ThenByDescending(p => p.CreatedDate).ToListAsync();
-    }
-
     public async Task<IEnumerable<Product>> SearchAsync(string searchTerm, bool includeImages = false)
     {
         var pattern = $"%{searchTerm}%";

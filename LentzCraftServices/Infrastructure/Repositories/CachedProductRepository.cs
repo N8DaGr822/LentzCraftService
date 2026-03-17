@@ -111,42 +111,6 @@ public class CachedProductRepository : IProductRepository
         return productsList;
     }
 
-    public async Task<IEnumerable<Product>> GetByCategoryAsync(ProductCategory category, bool includeImages = false)
-    {
-        var cacheKey = $"products_category_{category}_{includeImages}";
-
-        if (_cache.TryGetValue(cacheKey, out IEnumerable<Product>? cachedProducts))
-        {
-            _logger.LogDebug("Cache hit for category {Category}", category);
-            return cachedProducts ?? Enumerable.Empty<Product>();
-        }
-
-        var products = await _innerRepository.GetByCategoryAsync(category, includeImages);
-        var productsList = products.ToList();
-
-        _cache.Set(cacheKey, productsList, GetCacheOptions());
-
-        return productsList;
-    }
-
-    public async Task<IEnumerable<Product>> GetByStatusAsync(ProductStatus status, bool includeImages = false)
-    {
-        var cacheKey = $"products_status_{status}_{includeImages}";
-
-        if (_cache.TryGetValue(cacheKey, out IEnumerable<Product>? cachedProducts))
-        {
-            _logger.LogDebug("Cache hit for status {Status}", status);
-            return cachedProducts ?? Enumerable.Empty<Product>();
-        }
-
-        var products = await _innerRepository.GetByStatusAsync(status, includeImages);
-        var productsList = products.ToList();
-
-        _cache.Set(cacheKey, productsList, GetCacheOptions());
-
-        return productsList;
-    }
-
     public async Task<IEnumerable<Product>> SearchAsync(string searchTerm, bool includeImages = false)
     {
         // Don't cache search results as they're dynamic

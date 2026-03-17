@@ -13,8 +13,6 @@ public interface IProductRepository
     Task<IEnumerable<Product>> GetAllAsync(bool includeImages = false);
     Task<IEnumerable<Product>> GetPublicProductsAsync(bool includeImages = false);
     Task<IEnumerable<Product>> GetPublicProductsAsync(ProductCategory? category, ProductStatus? status, bool includeImages = false);
-    Task<IEnumerable<Product>> GetByCategoryAsync(ProductCategory category, bool includeImages = false);
-    Task<IEnumerable<Product>> GetByStatusAsync(ProductStatus status, bool includeImages = false);
     Task<IEnumerable<Product>> SearchAsync(string searchTerm, bool includeImages = false);
     Task<Product> AddAsync(Product product);
     Task<Product> UpdateAsync(Product product);

@@ -164,6 +164,9 @@ using (var scope = app.Services.CreateScope())
         }
 
         await DbInitializer.InitializeAsync(context, userManager, configuration, logger);
+
+        // Fix any products with duplicate DisplayOrder values (e.g. all 0s from pre-migration databases)
+        await DbInitializer.NormalizeDisplayOrderAsync(context, logger);
     }
     catch (Exception ex)
     {
