@@ -3,6 +3,7 @@ using LentzCraftServices.Infrastructure.Configuration;
 using LentzCraftServices.Infrastructure.Data;
 using LentzCraftServices.Infrastructure.Repositories;
 using LentzCraftServices.Infrastructure.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.StaticFiles;
@@ -185,10 +186,17 @@ else
     app.UseDeveloperExceptionPage();
 }
 
-// Add security headers
+// Forward headers from Azure reverse proxy (must be before UseHttpsRedirection)
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+// Add security headers (skip for Blazor SignalR hub requests)
 app.Use(async (context, next) =>
 {
-    if (!app.Environment.IsDevelopment())
+    if (!app.Environment.IsDevelopment() &&
+        !context.Request.Path.StartsWithSegments("/_blazor"))
     {
         context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
         context.Response.Headers.Append("X-Frame-Options", "DENY");
@@ -196,7 +204,7 @@ app.Use(async (context, next) =>
         context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
         context.Response.Headers.Append("Content-Security-Policy",
             "default-src 'self'; " +
-            "script-src 'self' 'unsafe-inline'; " +
+            "script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; " +
             "style-src 'self' 'unsafe-inline'; " +
             "img-src 'self' data: https:; " +
             "font-src 'self' data:; " +
@@ -221,14 +229,10 @@ var staticFileOptions = new StaticFileOptions
 };
 app.UseStaticFiles(staticFileOptions);
 
-app.UseAntiforgery();
-
-// Add global exception handler
-app.UseMiddleware<LentzCraftServices.Middleware.GlobalExceptionHandlerMiddleware>();
-
-// Enable authentication and authorization
+// Enable authentication and authorization (must be before UseAntiforgery per ASP.NET Core docs)
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery();
 app.UseRateLimiter();
 
 // Health checks endpoint (restricted to authenticated users)
