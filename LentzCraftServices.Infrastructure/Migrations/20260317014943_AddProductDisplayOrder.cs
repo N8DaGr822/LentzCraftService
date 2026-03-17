@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -10,17 +10,15 @@ namespace LentzCraftServices.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<int>(
-                name: "DisplayOrder",
-                table: "Products",
-                type: "int",
-                nullable: false,
-                defaultValue: 0);
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Products') AND name = 'DisplayOrder')
+                    ALTER TABLE [Products] ADD [DisplayOrder] int NOT NULL CONSTRAINT DF_Products_DisplayOrder DEFAULT 0;
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Products_DisplayOrder",
-                table: "Products",
-                column: "DisplayOrder");
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Products_DisplayOrder' AND object_id = OBJECT_ID('Products'))
+                    CREATE INDEX [IX_Products_DisplayOrder] ON [Products] ([DisplayOrder]);
+            ");
         }
 
         /// <inheritdoc />
