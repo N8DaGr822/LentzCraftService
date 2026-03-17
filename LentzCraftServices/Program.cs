@@ -158,6 +158,37 @@ using (var scope = app.Services.CreateScope())
         }
         else
         {
+            // Handle transition from EnsureCreated to Migrate:
+            // If the database was originally created with EnsureCreated, the tables exist
+            // but __EFMigrationsHistory doesn't. MigrateAsync would then try to run
+            // InitialCreate which fails because tables already exist.
+            // Fix: detect this scenario and stamp InitialCreate as already applied.
+            try
+            {
+                var applied = await context.Database.GetAppliedMigrationsAsync();
+                if (!applied.Any())
+                {
+                    // No migrations recorded — check if tables already exist
+                    var conn = context.Database.GetDbConnection();
+                    await conn.OpenAsync();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Products'";
+                    var result = await cmd.ExecuteScalarAsync();
+                    var tablesExist = result != null && Convert.ToInt32(result) > 0;
+
+                    if (tablesExist)
+                    {
+                        logger.LogWarning("Database has tables but no migration history — stamping InitialCreate as applied");
+                        await context.Database.ExecuteSqlRawAsync(
+                            "INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion]) VALUES ('20260310183128_InitialCreate', '9.0.0')");
+                    }
+                }
+            }
+            catch (Exception stampEx)
+            {
+                logger.LogWarning(stampEx, "Migration history check/stamp encountered an issue (non-fatal)");
+            }
+
             logger.LogInformation("Applying database migrations...");
             await context.Database.MigrateAsync();
             logger.LogInformation("Database migrations applied successfully");
