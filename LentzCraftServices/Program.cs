@@ -148,21 +148,28 @@ using (var scope = app.Services.CreateScope())
     var configuration = services.GetRequiredService<IConfiguration>();
     var logger = services.GetRequiredService<ILogger<Program>>();
     
-    try
+    // Apply migrations in production, ensure created in development
+    if (app.Environment.IsDevelopment())
     {
-        // Apply migrations in production, ensure created in development
-        if (app.Environment.IsDevelopment())
+        try
         {
             await context.Database.EnsureCreatedAsync();
         }
-        else
+        catch (Exception ex)
         {
-            // Apply migrations automatically in production
-            logger.LogInformation("Applying database migrations...");
-            await context.Database.MigrateAsync();
-            logger.LogInformation("Database migrations applied successfully");
+            logger.LogError(ex, "An error occurred creating the development database");
         }
+    }
+    else
+    {
+        // Migrations MUST succeed in production — don't swallow errors
+        logger.LogInformation("Applying database migrations...");
+        await context.Database.MigrateAsync();
+        logger.LogInformation("Database migrations applied successfully");
+    }
 
+    try
+    {
         await DbInitializer.InitializeAsync(context, userManager, configuration, logger);
 
         // Fix any products with duplicate DisplayOrder values (e.g. all 0s from pre-migration databases)
