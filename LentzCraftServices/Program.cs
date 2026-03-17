@@ -166,6 +166,7 @@ using (var scope = app.Services.CreateScope())
             // themselves throw when __EFMigrationsHistory doesn't exist.
             try
             {
+                // Case 1: Tables exist but __EFMigrationsHistory doesn't (pure EnsureCreated database)
                 await context.Database.ExecuteSqlRawAsync(@"
                     IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Products')
                        AND NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '__EFMigrationsHistory')
@@ -175,6 +176,18 @@ using (var scope = app.Services.CreateScope())
                             [ProductVersion] nvarchar(32) NOT NULL,
                             CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
                         );
+                        INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+                        VALUES ('20260310183128_InitialCreate', '9.0.0');
+                    END
+                ");
+
+                // Case 2: __EFMigrationsHistory exists (from previous failed MigrateAsync)
+                // but InitialCreate was never recorded because it failed
+                await context.Database.ExecuteSqlRawAsync(@"
+                    IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Products')
+                       AND EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '__EFMigrationsHistory')
+                       AND NOT EXISTS (SELECT 1 FROM [__EFMigrationsHistory] WHERE [MigrationId] = '20260310183128_InitialCreate')
+                    BEGIN
                         INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
                         VALUES ('20260310183128_InitialCreate', '9.0.0');
                     END
