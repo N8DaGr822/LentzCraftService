@@ -23,5 +23,6 @@ public interface IProductRepository
     Task<ProductImage> AddImageAsync(ProductImage image);
     Task DeleteImageAsync(int imageId);
     Task SetPrimaryImageAsync(int productId, int imageId);
+    Task SwapDisplayOrderAsync(int productId1, int productId2);
 }
 

@@ -197,6 +197,12 @@ public class CachedProductRepository : IProductRepository
         InvalidateCache();
     }
 
+    public async Task SwapDisplayOrderAsync(int productId1, int productId2)
+    {
+        await _innerRepository.SwapDisplayOrderAsync(productId1, productId2);
+        InvalidateCache();
+    }
+
     private void InvalidateCache()
     {
         _logger.LogDebug("Invalidating all product cache entries");
