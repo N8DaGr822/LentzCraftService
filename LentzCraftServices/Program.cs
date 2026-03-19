@@ -33,7 +33,8 @@ builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents()
+    .AddCircuitOptions(options => options.DetailedErrors = true);
 
 // Configure Entity Framework Core with SQL Server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
