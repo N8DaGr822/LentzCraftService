@@ -166,27 +166,19 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            var products = await ProductRepository.GetPublicProductsAsync(includeImages: true);
-            var productsWithImages = products
-                .Where(p => p.Images != null && p.Images.Any())
-                .ToList();
+        var products = await ProductRepository.GetPublicProductsAsync(includeImages: true);
+        var productsWithImages = products
+            .Where(p => p.Images != null && p.Images.Any())
+            .ToList();
 
-            // Service card images — pick the first product with an image from each category
-            woodworkingImage = GetPrimaryImageUrl(productsWithImages, ProductCategory.Woodworking)
-                            ?? GetPrimaryImageUrl(productsWithImages, ProductCategory.Engraving);
+        // Service card images — pick the first product with an image from each category
+        woodworkingImage = GetPrimaryImageUrl(productsWithImages, ProductCategory.Woodworking)
+                        ?? GetPrimaryImageUrl(productsWithImages, ProductCategory.Engraving);
 
-            crochetImage = GetPrimaryImageUrl(productsWithImages, ProductCategory.Crochet);
+        crochetImage = GetPrimaryImageUrl(productsWithImages, ProductCategory.Crochet);
 
-            // Gallery section — 3 most recent products with images
-            galleryProducts = productsWithImages.Take(3).ToList();
-        }
-        catch
-        {
-            // Gracefully handle database errors — page renders with static fallback images
-            galleryProducts = new List<Product>();
-        }
+        // Gallery section — 3 most recent products with images
+        galleryProducts = productsWithImages.Take(3).ToList();
     }
 
     private string? GetPrimaryImageUrl(List<Product> products, ProductCategory category)

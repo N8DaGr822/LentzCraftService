@@ -36,10 +36,8 @@ public class ApplicationDbContext : IdentityDbContext
             entity.Property(e => e.IsPublic).IsRequired();
             entity.Property(e => e.CreatedDate).IsRequired();
             entity.Property(e => e.ModifiedDate);
-            entity.Property(e => e.DisplayOrder).IsRequired().HasDefaultValue(0);
 
             // Performance indexes
-            entity.HasIndex(e => e.DisplayOrder);
             entity.HasIndex(e => e.IsPublic);
             entity.HasIndex(e => e.Category);
             entity.HasIndex(e => e.Status);

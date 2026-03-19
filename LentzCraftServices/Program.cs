@@ -3,7 +3,6 @@ using LentzCraftServices.Infrastructure.Configuration;
 using LentzCraftServices.Infrastructure.Data;
 using LentzCraftServices.Infrastructure.Repositories;
 using LentzCraftServices.Infrastructure.Services;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.StaticFiles;
@@ -158,55 +157,13 @@ using (var scope = app.Services.CreateScope())
         }
         else
         {
-            // Handle transition from EnsureCreated to Migrate:
-            // If the database was originally created with EnsureCreated, the tables exist
-            // but __EFMigrationsHistory doesn't. MigrateAsync would then try to run
-            // InitialCreate which fails because tables already exist.
-            // Fix: use raw SQL to detect and handle this — avoids EF API calls that
-            // themselves throw when __EFMigrationsHistory doesn't exist.
-            try
-            {
-                // Case 1: Tables exist but __EFMigrationsHistory doesn't (pure EnsureCreated database)
-                await context.Database.ExecuteSqlRawAsync(@"
-                    IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Products')
-                       AND NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '__EFMigrationsHistory')
-                    BEGIN
-                        CREATE TABLE [__EFMigrationsHistory] (
-                            [MigrationId] nvarchar(150) NOT NULL,
-                            [ProductVersion] nvarchar(32) NOT NULL,
-                            CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
-                        );
-                        INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-                        VALUES ('20260310183128_InitialCreate', '9.0.0');
-                    END
-                ");
-
-                // Case 2: __EFMigrationsHistory exists (from previous failed MigrateAsync)
-                // but InitialCreate was never recorded because it failed
-                await context.Database.ExecuteSqlRawAsync(@"
-                    IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Products')
-                       AND EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '__EFMigrationsHistory')
-                       AND NOT EXISTS (SELECT 1 FROM [__EFMigrationsHistory] WHERE [MigrationId] = '20260310183128_InitialCreate')
-                    BEGIN
-                        INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-                        VALUES ('20260310183128_InitialCreate', '9.0.0');
-                    END
-                ");
-            }
-            catch (Exception stampEx)
-            {
-                logger.LogWarning(stampEx, "Migration history check/stamp encountered an issue (non-fatal)");
-            }
-
+            // Apply migrations automatically in production
             logger.LogInformation("Applying database migrations...");
             await context.Database.MigrateAsync();
             logger.LogInformation("Database migrations applied successfully");
         }
 
         await DbInitializer.InitializeAsync(context, userManager, configuration, logger);
-
-        // Fix any products with duplicate DisplayOrder values (e.g. all 0s from pre-migration databases)
-        await DbInitializer.NormalizeDisplayOrderAsync(context, logger);
     }
     catch (Exception ex)
     {
@@ -226,17 +183,10 @@ else
     app.UseDeveloperExceptionPage();
 }
 
-// Forward headers from Azure reverse proxy (must be before UseHttpsRedirection)
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
-
-// Add security headers (skip for Blazor SignalR hub requests)
+// Add security headers
 app.Use(async (context, next) =>
 {
-    if (!app.Environment.IsDevelopment() &&
-        !context.Request.Path.StartsWithSegments("/_blazor"))
+    if (!app.Environment.IsDevelopment())
     {
         context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
         context.Response.Headers.Append("X-Frame-Options", "DENY");
@@ -244,7 +194,7 @@ app.Use(async (context, next) =>
         context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
         context.Response.Headers.Append("Content-Security-Policy",
             "default-src 'self'; " +
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com; " +
+            "script-src 'self' 'unsafe-inline'; " +
             "style-src 'self' 'unsafe-inline'; " +
             "img-src 'self' data: https:; " +
             "font-src 'self' data:; " +
@@ -269,10 +219,14 @@ var staticFileOptions = new StaticFileOptions
 };
 app.UseStaticFiles(staticFileOptions);
 
-// Enable authentication and authorization (must be before UseAntiforgery per ASP.NET Core docs)
+app.UseAntiforgery();
+
+// Add global exception handler
+app.UseMiddleware<LentzCraftServices.Middleware.GlobalExceptionHandlerMiddleware>();
+
+// Enable authentication and authorization
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseAntiforgery();
 app.UseRateLimiter();
 
 // Health checks endpoint (restricted to authenticated users)

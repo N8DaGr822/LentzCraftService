@@ -44,7 +44,7 @@ public class ProductRepository : IProductRepository
             query = query.Include(p => p.Images);
         }
 
-        return await query.OrderBy(p => p.DisplayOrder).ThenByDescending(p => p.CreatedDate).ToListAsync();
+        return await query.OrderByDescending(p => p.CreatedDate).ToListAsync();
     }
 
     public async Task<IEnumerable<Product>> GetPublicProductsAsync(bool includeImages = false)
@@ -56,7 +56,7 @@ public class ProductRepository : IProductRepository
             query = query.Include(p => p.Images);
         }
 
-        return await query.OrderBy(p => p.DisplayOrder).ThenByDescending(p => p.CreatedDate).ToListAsync();
+        return await query.OrderByDescending(p => p.CreatedDate).ToListAsync();
     }
 
     public async Task<IEnumerable<Product>> GetPublicProductsAsync(
@@ -79,7 +79,31 @@ public class ProductRepository : IProductRepository
             query = query.Include(p => p.Images);
         }
 
-        return await query.OrderBy(p => p.DisplayOrder).ThenByDescending(p => p.CreatedDate).ToListAsync();
+        return await query.OrderByDescending(p => p.CreatedDate).ToListAsync();
+    }
+
+    public async Task<IEnumerable<Product>> GetByCategoryAsync(ProductCategory category, bool includeImages = false)
+    {
+        var query = _context.Products.Where(p => p.Category == category).AsQueryable();
+        
+        if (includeImages)
+        {
+            query = query.Include(p => p.Images);
+        }
+
+        return await query.OrderByDescending(p => p.CreatedDate).ToListAsync();
+    }
+
+    public async Task<IEnumerable<Product>> GetByStatusAsync(ProductStatus status, bool includeImages = false)
+    {
+        var query = _context.Products.Where(p => p.Status == status).AsQueryable();
+        
+        if (includeImages)
+        {
+            query = query.Include(p => p.Images);
+        }
+
+        return await query.OrderByDescending(p => p.CreatedDate).ToListAsync();
     }
 
     public async Task<IEnumerable<Product>> SearchAsync(string searchTerm, bool includeImages = false)
@@ -95,14 +119,11 @@ public class ProductRepository : IProductRepository
             query = query.Include(p => p.Images);
         }
 
-        return await query.OrderBy(p => p.DisplayOrder).ThenByDescending(p => p.CreatedDate).ToListAsync();
+        return await query.OrderByDescending(p => p.CreatedDate).ToListAsync();
     }
 
     public async Task<Product> AddAsync(Product product)
     {
-        var maxOrder = await _context.Products.MaxAsync(p => (int?)p.DisplayOrder) ?? 0;
-        product.DisplayOrder = maxOrder + 1;
-
         _context.Products.Add(product);
         await _context.SaveChangesAsync();
         return product;
@@ -176,21 +197,6 @@ public class ProductRepository : IProductRepository
         {
             image.IsPrimary = image.Id == imageId;
         }
-
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task SwapDisplayOrderAsync(int productId1, int productId2)
-    {
-        var product1 = await _context.Products.FindAsync(productId1);
-        var product2 = await _context.Products.FindAsync(productId2);
-
-        if (product1 == null || product2 == null)
-        {
-            throw new InvalidOperationException("One or both products not found for reordering.");
-        }
-
-        (product1.DisplayOrder, product2.DisplayOrder) = (product2.DisplayOrder, product1.DisplayOrder);
 
         await _context.SaveChangesAsync();
     }

@@ -41,11 +41,6 @@ namespace LentzCraftServices.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<int>("DisplayOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
                     b.Property<bool>("IsPublic")
                         .HasColumnType("bit");
 
@@ -73,8 +68,6 @@ namespace LentzCraftServices.Infrastructure.Migrations
 
                     b.HasIndex("CreatedDate");
 
-                    b.HasIndex("DisplayOrder");
-
                     b.HasIndex("IsPublic");
 
                     b.HasIndex("Status");
@@ -83,7 +76,7 @@ namespace LentzCraftServices.Infrastructure.Migrations
 
                     b.HasIndex("IsPublic", "Status");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("LentzCraftServices.Domain.Entities.ProductImage", b =>
@@ -111,7 +104,7 @@ namespace LentzCraftServices.Infrastructure.Migrations
 
                     b.HasIndex("ProductId", "IsPrimary");
 
-                    b.ToTable("ProductImages");
+                    b.ToTable("ProductImages", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

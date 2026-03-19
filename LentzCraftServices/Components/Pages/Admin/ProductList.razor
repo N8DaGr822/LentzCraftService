@@ -31,17 +31,11 @@
             </select>
         </div>
 
-        @if (IsFiltered)
-        {
-            <p class="filter-notice">Reordering is disabled while filters are active. Clear all filters to change product order.</p>
-        }
-
-        @if (productsList != null && productsList.Any())
+        @if (products != null && products.Any())
         {
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th style="width: 90px;">Order</th>
                         <th>Name</th>
                         <th>Category</th>
                         <th>Status</th>
@@ -52,30 +46,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @for (int i = 0; i < productsList.Count; i++)
+                    @foreach (var product in products)
                     {
-                        var product = productsList[i];
-                        var index = i;
                         <tr>
-                            <td>
-                                @if (!IsFiltered)
-                                {
-                                    <div class="order-buttons">
-                                        @if (index > 0)
-                                        {
-                                            <button @onclick="() => MoveUp(index)" class="btn-order" title="Move Up">&#9650;</button>
-                                        }
-                                        @if (index < productsList.Count - 1)
-                                        {
-                                            <button @onclick="() => MoveDown(index)" class="btn-order" title="Move Down">&#9660;</button>
-                                        }
-                                    </div>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">--</span>
-                                }
-                            </td>
                             <td>@product.Name</td>
                             <td>@product.Category.GetDisplayName()</td>
                             <td>@product.Status.GetDisplayName()</td>
@@ -107,15 +80,11 @@
 </div>
 
 @code {
-    private List<Product>? productsList;
+    private IEnumerable<Product>? products;
     private string searchTerm = "";
     private string filterCategory = "";
     private string filterStatus = "";
     private int? confirmDeleteId;
-
-    private bool IsFiltered => !string.IsNullOrEmpty(searchTerm)
-        || !string.IsNullOrEmpty(filterCategory)
-        || !string.IsNullOrEmpty(filterStatus);
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,28 +114,7 @@
             allProducts = allProducts.Where(p => p.Status == status);
         }
 
-        productsList = allProducts.OrderBy(p => p.DisplayOrder)
-            .ThenByDescending(p => p.CreatedDate).ToList();
-    }
-
-    private async Task MoveUp(int index)
-    {
-        if (productsList == null || index <= 0) return;
-
-        var product = productsList[index];
-        var previousProduct = productsList[index - 1];
-        await ProductRepository.SwapDisplayOrderAsync(product.Id, previousProduct.Id);
-        await LoadProducts();
-    }
-
-    private async Task MoveDown(int index)
-    {
-        if (productsList == null || index < 0 || index >= productsList.Count - 1) return;
-
-        var product = productsList[index];
-        var nextProduct = productsList[index + 1];
-        await ProductRepository.SwapDisplayOrderAsync(product.Id, nextProduct.Id);
-        await LoadProducts();
+        products = allProducts.OrderByDescending(p => p.CreatedDate).ToList();
     }
 
     private void RequestDelete(int id)

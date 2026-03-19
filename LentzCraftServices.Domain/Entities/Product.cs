@@ -27,12 +27,7 @@ public class Product
     /// Only products with IsPublic = true are visible to anonymous users.
     /// </summary>
     public bool IsPublic { get; set; }
-
-    /// <summary>
-    /// Controls the display order on public pages. Lower values appear first.
-    /// </summary>
-    public int DisplayOrder { get; set; }
-
+    
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     public DateTime? ModifiedDate { get; set; }
