@@ -219,14 +219,10 @@ var staticFileOptions = new StaticFileOptions
 };
 app.UseStaticFiles(staticFileOptions);
 
-app.UseAntiforgery();
-
-// Add global exception handler
-app.UseMiddleware<LentzCraftServices.Middleware.GlobalExceptionHandlerMiddleware>();
-
-// Enable authentication and authorization
+// Enable authentication and authorization (must be before UseAntiforgery)
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery();
 app.UseRateLimiter();
 
 // Health checks endpoint (restricted to authenticated users)
