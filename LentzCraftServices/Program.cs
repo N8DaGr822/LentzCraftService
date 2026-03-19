@@ -188,7 +188,7 @@ else
 // Forward headers from Azure reverse proxy (must be before UseHttpsRedirection)
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
 });
 
 // Add security headers (skip for Blazor SignalR hub requests)
