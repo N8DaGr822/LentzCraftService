@@ -1,3 +1,23 @@
+/* Blazor error UI - hidden by default, shown by blazor.web.js on circuit errors */
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}
+
 /* Modern E-commerce Color Palette - Inspired by Hexashop */
 :root {
     --primary-color: #2B2D42;
