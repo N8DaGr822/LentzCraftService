@@ -11,11 +11,10 @@ namespace LentzCraftServices.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
-                name: "ModifiedDate",
-                table: "Products",
-                type: "datetime2",
-                nullable: true);
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Products') AND name = 'ModifiedDate')
+                    ALTER TABLE [Products] ADD [ModifiedDate] datetime2 NULL;
+            ");
         }
 
         /// <inheritdoc />
