@@ -36,7 +36,25 @@
             </div>
         </div>
 
-        @if (products == null)
+        @if (useStaticFallback)
+        {
+            <div class="static-gallery-notice">
+                <p>Our product catalog is temporarily unavailable. Here's a preview of our work:</p>
+            </div>
+            <div class="product-grid">
+                @foreach (var img in GetStaticImages())
+                {
+                    <div class="product-card">
+                        <img src="@img.Url" alt="@img.Name" class="product-image" loading="lazy" />
+                        <div class="product-info">
+                            <h3 class="product-name">@img.Name</h3>
+                            <p class="product-category">@img.Category</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else if (products == null)
         {
             <div class="loading-container">
                 <div class="loading-spinner"></div>
@@ -95,6 +113,7 @@
     private string selectedStatus = "";
     private bool _shouldScrollToTop = false;
     private bool _isInitialized = false;
+    private bool useStaticFallback = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -158,7 +177,7 @@
         }
         catch (Exception ex) when (IsDatabaseQuotaException(ex))
         {
-            Navigation.NavigateTo("/DatabaseUnavailable");
+            useStaticFallback = true;
         }
     }
 
@@ -167,6 +186,19 @@
         var message = ex.Message + (ex.InnerException != null ? " " + ex.InnerException.Message : "");
         return message.Contains("reached the monthly free amount allowance", StringComparison.OrdinalIgnoreCase);
     }
+
+    private record StaticImage(string Url, string Name, string Category);
+
+    private static List<StaticImage> GetStaticImages() =>
+    [
+        new("/images/fallback/BestMomEverBox1.jpg", "Best Mom Ever Box", "Woodworking"),
+        new("/images/fallback/DoubleBench.jpg", "Double Bench", "Woodworking"),
+        new("/images/fallback/DoubleBench1.jpg", "Double Bench", "Woodworking"),
+        new("/images/fallback/DoubleBench2.jpg", "Double Bench", "Woodworking"),
+        new("/images/fallback/TreeAI.png", "Tree", "Woodworking"),
+        new("/images/fallback/WineBottleHolder.jpg", "Wine Bottle Holder", "Woodworking"),
+        new("/images/fallback/WineBottleHolder1.jpg", "Wine Bottle Holder", "Woodworking"),
+    ];
 
     private async Task OnCategoryChanged(ChangeEventArgs e)
     {

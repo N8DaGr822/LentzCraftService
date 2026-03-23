@@ -1,8 +1,4 @@
 ﻿@page "/"
-@using LentzCraftServices.Domain.Enums
-@inject IProductRepository ProductRepository
-@inject NavigationManager Navigation
-@rendermode InteractiveServer
 
 <PageTitle>Lentz Crafts & Services - Handcrafted Excellence</PageTitle>
 
@@ -48,14 +44,7 @@
             <div class="service-card">
                 <div class="service-image">
                     <div class="service-image-placeholder">
-                        @if (woodworkingImage != null)
-                        {
-                            <img src="@woodworkingImage" alt="Woodworking and Engraving Services" class="service-image-img" />
-                        }
-                        else
-                        {
-                            <img src="/images/engraving.png" alt="Woodworking and Engraving Services" class="service-image-img" />
-                        }
+                        <img src="/images/engraving.png" alt="Woodworking and Engraving Services" class="service-image-img" />
                     </div>
                 </div>
                 <div class="service-content">
@@ -72,14 +61,7 @@
             <div class="service-card">
                 <div class="service-image">
                     <div class="service-image-placeholder">
-                        @if (crochetImage != null)
-                        {
-                            <img src="@crochetImage" alt="Crochet and Handmade Goods" class="service-image-img" />
-                        }
-                        else
-                        {
-                            <img src="/images/crochet.png" alt="Crochet and Handmade Goods" class="service-image-img" />
-                        }
+                        <img src="/images/crochet.png" alt="Crochet and Handmade Goods" class="service-image-img" />
                     </div>
                 </div>
                 <div class="service-content">
@@ -125,26 +107,6 @@
 <div class="work-gallery-section">
     <div class="container">
         <h2 class="section-heading section-heading-light">Our Work: Crafted with Care</h2>
-        @if (galleryProducts != null && galleryProducts.Any())
-        {
-            <div class="gallery-grid">
-                @foreach (var product in galleryProducts)
-                {
-                    var image = product.Images?.FirstOrDefault(i => i.IsPrimary) ?? product.Images?.FirstOrDefault();
-                    if (image != null)
-                    {
-                        var imageUrl = image.ImageUrl?.Replace(" ", "%20") ?? "";
-                        <div class="gallery-item">
-                            <a href="/products/@product.Id">
-                                <div class="gallery-image-placeholder">
-                                    <img src="@imageUrl" alt="@product.Name" class="gallery-image" loading="lazy" />
-                                </div>
-                            </a>
-                        </div>
-                    }
-                }
-            </div>
-        }
         <div class="gallery-cta">
             <a href="/products" class="btn-gallery">View Gallery</a>
         </div>
@@ -160,54 +122,3 @@
     </div>
 </div>
 
-@code {
-    private List<Product>? galleryProducts;
-    private string? woodworkingImage;
-    private string? crochetImage;
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            var products = await ProductRepository.GetPublicProductsAsync(includeImages: true);
-            var productsWithImages = products
-                .Where(p => p.Images != null && p.Images.Any())
-                .ToList();
-
-            // Service card images — pick the first product with an image from each category
-            woodworkingImage = GetPrimaryImageUrl(productsWithImages, ProductCategory.Woodworking)
-                            ?? GetPrimaryImageUrl(productsWithImages, ProductCategory.Engraving);
-
-            crochetImage = GetPrimaryImageUrl(productsWithImages, ProductCategory.Crochet);
-
-            // Gallery section — 3 most recent products with images
-            galleryProducts = productsWithImages.Take(3).ToList();
-        }
-        catch (Exception ex) when (IsDatabaseQuotaException(ex))
-        {
-            Navigation.NavigateTo("/DatabaseUnavailable");
-        }
-        catch
-        {
-            // Graceful fallback — show page without dynamic images
-            galleryProducts = new List<Product>();
-        }
-    }
-
-    private static bool IsDatabaseQuotaException(Exception ex)
-    {
-        var message = ex.Message + (ex.InnerException != null ? " " + ex.InnerException.Message : "");
-        return message.Contains("reached the monthly free amount allowance", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private string? GetPrimaryImageUrl(List<Product> products, ProductCategory category)
-    {
-        var product = products.FirstOrDefault(p => p.Category == category);
-        if (product == null) return null;
-
-        var image = product.Images?.FirstOrDefault(i => i.IsPrimary)
-                 ?? product.Images?.FirstOrDefault();
-
-        return image?.ImageUrl?.Replace(" ", "%20");
-    }
-}
