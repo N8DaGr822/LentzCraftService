@@ -1,5 +1,6 @@
 @page "/products/{CategoryName}"
 @inject IProductRepository ProductRepository
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>@CategoryDisplayName - Lentz Crafts & Services</PageTitle>
@@ -66,15 +67,28 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (Enum.TryParse<ProductCategory>(CategoryName, true, out var category))
+        try
         {
-            var allProducts = await ProductRepository.GetByCategoryAsync(category, includeImages: true);
-            products = allProducts.Where(p => p.IsPublic).OrderByDescending(p => p.CreatedDate).ToList();
+            if (Enum.TryParse<ProductCategory>(CategoryName, true, out var category))
+            {
+                var allProducts = await ProductRepository.GetByCategoryAsync(category, includeImages: true);
+                products = allProducts.Where(p => p.IsPublic).OrderByDescending(p => p.CreatedDate).ToList();
+            }
+            else
+            {
+                products = new List<Product>();
+            }
         }
-        else
+        catch (Exception ex) when (IsDatabaseQuotaException(ex))
         {
-            products = new List<Product>();
+            Navigation.NavigateTo("/DatabaseUnavailable");
         }
+    }
+
+    private static bool IsDatabaseQuotaException(Exception ex)
+    {
+        var message = ex.Message + (ex.InnerException != null ? " " + ex.InnerException.Message : "");
+        return message.Contains("reached the monthly free amount allowance", StringComparison.OrdinalIgnoreCase);
     }
 }
 

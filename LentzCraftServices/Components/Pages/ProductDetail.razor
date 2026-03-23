@@ -119,13 +119,26 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        product = await ProductRepository.GetByIdAsync(ProductId, includeImages: true);
-
-        if (product?.Images != null && product.Images.Any())
+        try
         {
-            var primaryImage = product.Images.FirstOrDefault(i => i.IsPrimary) ?? product.Images.First();
-            selectedImageUrl = primaryImage.ImageUrl?.Replace(" ", "%20") ?? "";
+            product = await ProductRepository.GetByIdAsync(ProductId, includeImages: true);
+
+            if (product?.Images != null && product.Images.Any())
+            {
+                var primaryImage = product.Images.FirstOrDefault(i => i.IsPrimary) ?? product.Images.First();
+                selectedImageUrl = primaryImage.ImageUrl?.Replace(" ", "%20") ?? "";
+            }
         }
+        catch (Exception ex) when (IsDatabaseQuotaException(ex))
+        {
+            Navigation.NavigateTo("/DatabaseUnavailable");
+        }
+    }
+
+    private static bool IsDatabaseQuotaException(Exception ex)
+    {
+        var message = ex.Message + (ex.InnerException != null ? " " + ex.InnerException.Message : "");
+        return message.Contains("reached the monthly free amount allowance", StringComparison.OrdinalIgnoreCase);
     }
 
     private void SelectImage(string imageUrl)

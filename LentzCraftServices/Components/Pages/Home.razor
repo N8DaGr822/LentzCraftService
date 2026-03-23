@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using LentzCraftServices.Domain.Enums
 @inject IProductRepository ProductRepository
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Lentz Crafts & Services - Handcrafted Excellence</PageTitle>
@@ -182,11 +183,21 @@
             // Gallery section — 3 most recent products with images
             galleryProducts = productsWithImages.Take(3).ToList();
         }
+        catch (Exception ex) when (IsDatabaseQuotaException(ex))
+        {
+            Navigation.NavigateTo("/DatabaseUnavailable");
+        }
         catch
         {
             // Graceful fallback — show page without dynamic images
             galleryProducts = new List<Product>();
         }
+    }
+
+    private static bool IsDatabaseQuotaException(Exception ex)
+    {
+        var message = ex.Message + (ex.InnerException != null ? " " + ex.InnerException.Message : "");
+        return message.Contains("reached the monthly free amount allowance", StringComparison.OrdinalIgnoreCase);
     }
 
     private string? GetPrimaryImageUrl(List<Product> products, ProductCategory category)

@@ -93,28 +93,41 @@
 
     private async Task LoadProducts()
     {
-        IEnumerable<Product> allProducts;
-
-        if (!string.IsNullOrEmpty(searchTerm))
+        try
         {
-            allProducts = await ProductRepository.SearchAsync(searchTerm);
-        }
-        else
-        {
-            allProducts = await ProductRepository.GetAllAsync();
-        }
+            IEnumerable<Product> allProducts;
 
-        if (!string.IsNullOrEmpty(filterCategory) && Enum.TryParse<ProductCategory>(filterCategory, out var category))
-        {
-            allProducts = allProducts.Where(p => p.Category == category);
-        }
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                allProducts = await ProductRepository.SearchAsync(searchTerm);
+            }
+            else
+            {
+                allProducts = await ProductRepository.GetAllAsync();
+            }
 
-        if (!string.IsNullOrEmpty(filterStatus) && Enum.TryParse<ProductStatus>(filterStatus, out var status))
-        {
-            allProducts = allProducts.Where(p => p.Status == status);
-        }
+            if (!string.IsNullOrEmpty(filterCategory) && Enum.TryParse<ProductCategory>(filterCategory, out var category))
+            {
+                allProducts = allProducts.Where(p => p.Category == category);
+            }
 
-        products = allProducts.OrderByDescending(p => p.CreatedDate).ToList();
+            if (!string.IsNullOrEmpty(filterStatus) && Enum.TryParse<ProductStatus>(filterStatus, out var status))
+            {
+                allProducts = allProducts.Where(p => p.Status == status);
+            }
+
+            products = allProducts.OrderByDescending(p => p.CreatedDate).ToList();
+        }
+        catch (Exception ex) when (IsDatabaseQuotaException(ex))
+        {
+            Navigation.NavigateTo("/DatabaseUnavailable");
+        }
+    }
+
+    private static bool IsDatabaseQuotaException(Exception ex)
+    {
+        var message = ex.Message + (ex.InnerException != null ? " " + ex.InnerException.Message : "");
+        return message.Contains("reached the monthly free amount allowance", StringComparison.OrdinalIgnoreCase);
     }
 
     private void RequestDelete(int id)

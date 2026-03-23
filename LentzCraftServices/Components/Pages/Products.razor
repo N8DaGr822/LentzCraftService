@@ -139,20 +139,33 @@
 
     private async Task LoadProducts()
     {
-        ProductCategory? categoryFilter = null;
-        ProductStatus? statusFilter = null;
-
-        if (!string.IsNullOrEmpty(selectedCategory) && Enum.TryParse<ProductCategory>(selectedCategory, out var category))
+        try
         {
-            categoryFilter = category;
-        }
+            ProductCategory? categoryFilter = null;
+            ProductStatus? statusFilter = null;
 
-        if (!string.IsNullOrEmpty(selectedStatus) && Enum.TryParse<ProductStatus>(selectedStatus, out var status))
+            if (!string.IsNullOrEmpty(selectedCategory) && Enum.TryParse<ProductCategory>(selectedCategory, out var category))
+            {
+                categoryFilter = category;
+            }
+
+            if (!string.IsNullOrEmpty(selectedStatus) && Enum.TryParse<ProductStatus>(selectedStatus, out var status))
+            {
+                statusFilter = status;
+            }
+
+            products = await ProductRepository.GetPublicProductsAsync(categoryFilter, statusFilter, includeImages: true);
+        }
+        catch (Exception ex) when (IsDatabaseQuotaException(ex))
         {
-            statusFilter = status;
+            Navigation.NavigateTo("/DatabaseUnavailable");
         }
+    }
 
-        products = await ProductRepository.GetPublicProductsAsync(categoryFilter, statusFilter, includeImages: true);
+    private static bool IsDatabaseQuotaException(Exception ex)
+    {
+        var message = ex.Message + (ex.InnerException != null ? " " + ex.InnerException.Message : "");
+        return message.Contains("reached the monthly free amount allowance", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task OnCategoryChanged(ChangeEventArgs e)

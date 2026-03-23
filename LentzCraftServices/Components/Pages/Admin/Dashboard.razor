@@ -1,6 +1,7 @@
 @page "/admin"
 @attribute [Authorize]
 @inject IProductRepository ProductRepository
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <PageTitle>Admin Dashboard - Lentz Crafts & Services</PageTitle>
@@ -35,11 +36,24 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var allProducts = await ProductRepository.GetAllAsync();
-        var productList = allProducts.ToList();
-        totalItems = productList.Count;
-        statusCounts = Enum.GetValues<ProductStatus>()
-            .ToDictionary(s => s, s => productList.Count(p => p.Status == s));
+        try
+        {
+            var allProducts = await ProductRepository.GetAllAsync();
+            var productList = allProducts.ToList();
+            totalItems = productList.Count;
+            statusCounts = Enum.GetValues<ProductStatus>()
+                .ToDictionary(s => s, s => productList.Count(p => p.Status == s));
+        }
+        catch (Exception ex) when (IsDatabaseQuotaException(ex))
+        {
+            Navigation.NavigateTo("/DatabaseUnavailable");
+        }
+    }
+
+    private static bool IsDatabaseQuotaException(Exception ex)
+    {
+        var message = ex.Message + (ex.InnerException != null ? " " + ex.InnerException.Message : "");
+        return message.Contains("reached the monthly free amount allowance", StringComparison.OrdinalIgnoreCase);
     }
 }
 
