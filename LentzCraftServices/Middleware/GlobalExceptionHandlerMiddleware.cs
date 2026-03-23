@@ -41,12 +41,20 @@ public class GlobalExceptionHandlerMiddleware
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
+        // Check if this is a database free-tier quota exception
+        if (IsDatabaseQuotaException(exception))
+        {
+            _logger.LogWarning("Database free-tier monthly quota exceeded. Redirecting to maintenance page.");
+            context.Response.Redirect("/DatabaseUnavailable");
+            return;
+        }
+
         var response = new
         {
             error = new
             {
-                message = _environment.IsDevelopment() 
-                    ? exception.Message 
+                message = _environment.IsDevelopment()
+                    ? exception.Message
                     : "An error occurred while processing your request.",
                 requestId = context.TraceIdentifier,
                 statusCode = context.Response.StatusCode
@@ -54,7 +62,7 @@ public class GlobalExceptionHandlerMiddleware
         };
 
         // If it's a Blazor page request, redirect to error page
-        if (context.Request.Path.StartsWithSegments("/") && 
+        if (context.Request.Path.StartsWithSegments("/") &&
             !context.Request.Path.StartsWithSegments("/api"))
         {
             context.Response.Redirect("/500");
@@ -63,5 +71,15 @@ public class GlobalExceptionHandlerMiddleware
 
         var jsonResponse = JsonSerializer.Serialize(response);
         await context.Response.WriteAsync(jsonResponse);
+    }
+
+    private static bool IsDatabaseQuotaException(Exception exception)
+    {
+        var message = exception.Message;
+        if (exception.InnerException != null)
+            message += " " + exception.InnerException.Message;
+
+        return message.Contains("reached the monthly free amount allowance", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("free amount will renew", StringComparison.OrdinalIgnoreCase);
     }
 }

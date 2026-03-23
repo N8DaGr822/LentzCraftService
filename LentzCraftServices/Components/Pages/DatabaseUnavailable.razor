@@ -1,0 +1,76 @@
+@page "/DatabaseUnavailable"
+
+<PageTitle>Service Temporarily Unavailable - Lentz Crafts & Services</PageTitle>
+
+<div class="error-page">
+    <div class="container">
+        <div class="error-content">
+            <div class="error-icon">&#128736;</div>
+            <h1 class="error-title">Service Temporarily Unavailable</h1>
+            <p class="error-message">
+                Our database has reached its monthly usage limit and is temporarily paused.
+                Service will automatically resume on the <strong>1st of next month</strong>.
+            </p>
+            <p class="error-detail">
+                You can still browse the site, but features like logging in, viewing products,
+                and submitting contact forms won't work until service is restored.
+            </p>
+            <p class="error-detail">
+                We apologize for the inconvenience. If you need immediate assistance,
+                please reach out to us directly.
+            </p>
+            <div class="error-actions">
+                <a href="/" class="btn-primary">Go to Home</a>
+                <a href="/Contact" class="btn-secondary">Contact Us</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-page {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    .error-content {
+        text-align: center;
+        max-width: 600px;
+    }
+
+    .error-icon {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+    }
+
+    .error-title {
+        font-size: 2rem;
+        margin: 1rem 0;
+        color: var(--primary-color, #8B4513);
+    }
+
+    .error-message {
+        font-size: 1.1rem;
+        color: var(--text-color, #333);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .error-detail {
+        font-size: 1rem;
+        color: var(--text-secondary, #666);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+    }
+</style>

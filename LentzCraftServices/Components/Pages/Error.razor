@@ -2,48 +2,138 @@
 @using System.Diagnostics
 @using Microsoft.AspNetCore.Diagnostics
 
-<PageTitle>Error</PageTitle>
+<PageTitle>Error - Lentz Crafts & Services</PageTitle>
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
-
-@if (ShowRequestId)
+@if (IsDatabaseQuota)
 {
-    <p>
-        <strong>Request ID:</strong> <code>@RequestId</code>
-    </p>
-}
-
-@if (!string.IsNullOrEmpty(ExceptionMessage))
-{
-    <div style="background:#fff3cd;border:1px solid #ffc107;padding:15px;margin:15px 0;border-radius:5px;">
-        <h4>Error Details (temporary diagnostic):</h4>
-        <pre style="white-space:pre-wrap;word-break:break-all;">@ExceptionMessage</pre>
+    <div class="error-page">
+        <div class="container">
+            <div class="error-content">
+                <div class="error-icon">&#128736;</div>
+                <h1 class="error-title">Service Temporarily Unavailable</h1>
+                <p class="error-message">
+                    Our database has reached its monthly usage limit and is temporarily paused.
+                    Service will automatically resume on the <strong>1st of next month</strong>.
+                </p>
+                <p class="error-detail">
+                    You can still browse the site, but features like logging in, viewing products,
+                    and submitting contact forms won't work until service is restored.
+                </p>
+                <p class="error-detail">
+                    We apologize for the inconvenience. If you need immediate assistance,
+                    please reach out to us directly.
+                </p>
+                <div class="error-actions">
+                    <a href="/" class="btn-primary">Go to Home</a>
+                    <a href="/Contact" class="btn-secondary">Contact Us</a>
+                </div>
+            </div>
+        </div>
     </div>
 }
+else
+{
+    <div class="error-page">
+        <div class="container">
+            <div class="error-content">
+                <h1 class="error-code">500</h1>
+                <h2 class="error-title">Something Went Wrong</h2>
+                <p class="error-message">
+                    We're sorry, but something went wrong on our end. We've been notified and are working to fix the issue.
+                </p>
+
+                @if (ShowRequestId)
+                {
+                    <p class="error-detail">
+                        <strong>Request ID:</strong> <code>@RequestId</code>
+                    </p>
+                }
+
+                <div class="error-actions">
+                    <a href="/" class="btn-primary">Go to Home</a>
+                    <a href="javascript:history.back()" class="btn-secondary">Go Back</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .error-page {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+
+    .error-content {
+        text-align: center;
+        max-width: 600px;
+    }
+
+    .error-icon {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+    }
+
+    .error-code {
+        font-size: 8rem;
+        font-weight: bold;
+        color: var(--primary-color, #8B4513);
+        margin: 0;
+        line-height: 1;
+    }
+
+    .error-title {
+        font-size: 2rem;
+        margin: 1rem 0;
+        color: var(--primary-color, #8B4513);
+    }
+
+    .error-message {
+        font-size: 1.1rem;
+        color: var(--text-color, #333);
+        margin-bottom: 1rem;
+        line-height: 1.6;
+    }
+
+    .error-detail {
+        font-size: 1rem;
+        color: var(--text-secondary, #666);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+    }
+</style>
 
 @code{
     [CascadingParameter]
     private HttpContext? HttpContext { get; set; }
 
     private string? RequestId { get; set; }
-    private string? ExceptionMessage { get; set; }
+    private bool IsDatabaseQuota { get; set; }
     private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 
     protected override void OnInitialized()
     {
         RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
 
-        // Get exception details from the exception handler
         var exceptionFeature = HttpContext?.Features.Get<IExceptionHandlerPathFeature>();
         if (exceptionFeature?.Error != null)
         {
             var ex = exceptionFeature.Error;
-            ExceptionMessage = $"Type: {ex.GetType().FullName}\nMessage: {ex.Message}\nPath: {exceptionFeature.Path}\nStack: {ex.StackTrace}";
-            if (ex.InnerException != null)
-            {
-                ExceptionMessage += $"\n\nInner Exception:\nType: {ex.InnerException.GetType().FullName}\nMessage: {ex.InnerException.Message}\nStack: {ex.InnerException.StackTrace}";
-            }
+            var fullMessage = ex.Message + (ex.InnerException != null ? " " + ex.InnerException.Message : "");
+
+            IsDatabaseQuota = fullMessage.Contains("reached the monthly free amount allowance", StringComparison.OrdinalIgnoreCase)
+                || fullMessage.Contains("free amount will renew", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
